@@ -1,6 +1,29 @@
 let rootURL = document.baseURI
 var root = document.querySelector(':root')
 const body = document.querySelector('body');
+function resolveInitialLang(){
+  if (window.lang === 'cn' || window.lang === 'en') {
+    return window.lang
+  }
+  var params = new URLSearchParams(window.location.search)
+  var forced = params.get('lang')
+  if (forced === 'cn' || forced === 'en') {
+    return forced
+  }
+  var nav = []
+  if (window.navigator && window.navigator.languages && window.navigator.languages.length) {
+    nav = nav.concat(window.navigator.languages)
+  }
+  if (window.navigator && window.navigator.language) {
+    nav.push(window.navigator.language)
+  }
+  return nav.some(function(item) {
+    return /^zh-/i.test(item)
+  }) ? 'cn' : 'en'
+}
+window.lang = resolveInitialLang()
+document.documentElement.lang = window.lang === 'cn' ? 'zh-Hans' : 'en'
+var lang = window.lang
 if(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches){
   root.classList.add('dark')
 }
@@ -1014,6 +1037,9 @@ var d = new Vue({
       else{
         this.lang = "en"
       }
+      lang = this.lang
+      window.lang = this.lang
+      document.documentElement.lang = this.lang == "cn" ? "zh-Hans" : "en"
     },
     toggleDarkMode(){
       this.darkMode =!this.darkMode

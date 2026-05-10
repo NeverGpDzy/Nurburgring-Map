@@ -1,36 +1,4 @@
-<?PHP
-header("Cache-Control: no-cache");
-require_once ("env.php");
-$lastEditTime = date ("jhi", filemtime(__FILE__));
-
-$acceptLanguage = $_SERVER['HTTP_ACCEPT_LANGUAGE'];
-$languages = explode(',', $acceptLanguage);
-$zhLanguages = [];
-$lang = "en";
-foreach($languages as $lang){
-  if(strpos(trim($lang), 'zh-') === 0){
-    $zhLanguages[] = $lang;
-  }
-}
-if(!empty($zhLanguages)) $lang = "cn";
-if(isset($_GET['lang']) && $_GET['lang'] == "cn") $lang = "cn";
-if(isset($_GET['lang']) && $_GET['lang'] == "en") $lang = "en";
-
-if($lang == "cn"){
-  $extraHead = "";
-  // $pageDesc="可交互的纽博格林北环赛道地图，展示了众多弯道的介绍和图片";
-  // $pageLang="zh-Hans";
-  $jsLang = "cn";
-}
-else{
-  $extraHead = "";
-  // $pageDesc="An interactive map of Nürburgring race track";
-  // $pageLang="en-US";
-  $jsLang = "en";
-}
-
-echo
-<<<HTML
+<!DOCTYPE html>
 <html lang="zh-Hans">
 	<head>
     <meta charset="UTF-8">
@@ -55,15 +23,35 @@ echo
 
     <link rel="preconnect" href="https://s.anyway.red">
     <link rel="preconnect" href="https://anyway.fm">
-    <link rel="stylesheet" href="{$assetsDir}/main.css?v={$lastEditTime}"/>
-    {$extraHead}
-    <link rel="stylesheet" href="{$assetsDir}/sm/result.css"/>
-    <link rel="icon" href="{$assetsDir}/fav.png">
+    <link rel="stylesheet" href="assets/main.css"/>
+    <link rel="stylesheet" href="assets/sm/result.css"/>
+    <link rel="icon" href="assets/fav.png">
 
     <style>[v-cloak],.hidden-area{display: none;}</style>
 
     <script>
-      var lang = '{$jsLang}'
+      (function() {
+        var params = new URLSearchParams(window.location.search);
+        var forced = params.get('lang');
+        var current = 'en';
+        if (forced === 'cn' || forced === 'en') {
+          current = forced;
+        } else {
+          var nav = [];
+          if (window.navigator && window.navigator.languages && window.navigator.languages.length) {
+            nav = nav.concat(window.navigator.languages);
+          }
+          if (window.navigator && window.navigator.language) {
+            nav.push(window.navigator.language);
+          }
+          if (nav.some(function(item) { return /^zh-/i.test(item); })) {
+            current = 'cn';
+          }
+        }
+        window.lang = current;
+        document.documentElement.lang = current === 'cn' ? 'zh-Hans' : 'en';
+      })();
+      var lang = window.lang || 'en'
       var _paq = window._paq = window._paq || [];
       _paq.push(['trackPageView']);
       _paq.push(['enableLinkTracking']);
@@ -161,7 +149,7 @@ echo
       <div class="inner skew-n">
         <span class="title-font" v-if="lang == 'cn'">纽<span>博格林</span>北<span>环</span>赛道地图</span>
         <span class="title-font" v-if="lang == 'en'">Nürburgring Map</span>
-        <img src="{$assetsDir}/logo.svg" alt="纽北赛道地图"/>
+        <img src="assets/logo.svg" alt="纽北赛道地图"/>
       </div>
     </div>
     <div class="corner-info">
@@ -270,9 +258,7 @@ echo
 
   <div class="all-names title-font"><template v-for="c in corners" >{{c.ch}} <template v-if="c.nk && c.ch != c.nk">{{c.nk}} </template></template> </div>
 </div>
-<script src='{$assetsDir}/vue-2.6.11.min.js'></script>
-<script src="{$assetsDir}/main.js?v={$lastEditTime}"></script>
+<script src='assets/vue-2.6.11.min.js'></script>
+<script src="assets/main.js"></script>
 </body>
 </html>
-HTML;
-?>
