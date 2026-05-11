@@ -90,7 +90,7 @@
       road: 14.4,
       shoulder: 1.8,
       bank: 0,
-      elevation: 0,
+      elevation: 60,
       camHeight: 1.8,
       speedHint: 70
     },
@@ -101,7 +101,7 @@
       road: 12.1,
       shoulder: 1.2,
       bank: 0,
-      elevation: 0,
+      elevation: 58,
       camHeight: 1.75,
       speedHint: 120
     },
@@ -112,7 +112,7 @@
       road: 10.0,
       shoulder: 0.8,
       bank: -1,
-      elevation: 2,
+      elevation: 50,
       camHeight: 1.70,
       speedHint: 110
     },
@@ -123,7 +123,7 @@
       road: 8.8,
       shoulder: 0.6,
       bank: -1,
-      elevation: 4,
+      elevation: 45,
       camHeight: 1.68,
       speedHint: 105
     },
@@ -134,7 +134,7 @@
       road: 9.2,
       shoulder: 0.7,
       bank: 0,
-      elevation: 8,
+      elevation: 65,
       camHeight: 1.68,
       speedHint: 120
     },
@@ -145,7 +145,7 @@
       road: 10.6,
       shoulder: 0.9,
       bank: 1,
-      elevation: 16,
+      elevation: 100,
       camHeight: 1.72,
       speedHint: 190
     },
@@ -156,7 +156,7 @@
       road: 10.0,
       shoulder: 0.8,
       bank: 1,
-      elevation: 18,
+      elevation: 110,
       camHeight: 1.72,
       speedHint: 180
     },
@@ -167,7 +167,7 @@
       road: 9.6,
       shoulder: 0.7,
       bank: 0,
-      elevation: 18,
+      elevation: 120,
       camHeight: 1.70,
       speedHint: 160
     },
@@ -178,7 +178,7 @@
       road: 9.8,
       shoulder: 0.7,
       bank: 2,
-      elevation: 20,
+      elevation: 160,
       camHeight: 1.72,
       speedHint: 175
     },
@@ -189,7 +189,7 @@
       road: 9.4,
       shoulder: 0.7,
       bank: 1,
-      elevation: 18,
+      elevation: 140,
       camHeight: 1.70,
       speedHint: 160
     },
@@ -200,7 +200,7 @@
       road: 8.7,
       shoulder: 0.5,
       bank: 0,
-      elevation: 12,
+      elevation: 50,
       camHeight: 1.68,
       speedHint: 125
     },
@@ -211,7 +211,7 @@
       road: 8.2,
       shoulder: 0.5,
       bank: -1,
-      elevation: 6,
+      elevation: 30,
       camHeight: 1.66,
       speedHint: 110
     },
@@ -222,7 +222,7 @@
       road: 9.0,
       shoulder: 0.7,
       bank: 0,
-      elevation: 8,
+      elevation: 100,
       camHeight: 1.68,
       speedHint: 140
     },
@@ -233,7 +233,7 @@
       road: 9.2,
       shoulder: 0.8,
       bank: 0,
-      elevation: 9,
+      elevation: 130,
       camHeight: 1.68,
       speedHint: 145
     },
@@ -244,7 +244,7 @@
       road: 9.2,
       shoulder: 0.8,
       bank: 0,
-      elevation: 10,
+      elevation: 155,
       camHeight: 1.68,
       speedHint: 150
     },
@@ -255,7 +255,7 @@
       road: 8.8,
       shoulder: 0.6,
       bank: 0,
-      elevation: 10,
+      elevation: 150,
       camHeight: 1.66,
       speedHint: 120
     },
@@ -266,7 +266,7 @@
       road: 9.0,
       shoulder: 0.7,
       bank: 0,
-      elevation: 11,
+      elevation: 130,
       camHeight: 1.66,
       speedHint: 115
     },
@@ -277,18 +277,18 @@
       road: 8.6,
       shoulder: 0.6,
       bank: -1,
-      elevation: 12,
+      elevation: 80,
       camHeight: 1.64,
       speedHint: 95
     },
     {
       p: 0.372,
       label: { en: "Breidscheid", cn: "布雷德沙伊德" },
-      badge: { en: "Low point", cn: "最低点" },
+      badge: { en: "Valley", cn: "谷底" },
       road: 10.0,
       shoulder: 0.8,
       bank: 0,
-      elevation: 4,
+      elevation: 50,
       camHeight: 1.68,
       speedHint: 110
     },
@@ -299,7 +299,7 @@
       road: 9.0,
       shoulder: 0.7,
       bank: 0,
-      elevation: 8,
+      elevation: 90,
       camHeight: 1.66,
       speedHint: 105
     },
@@ -310,7 +310,7 @@
       road: 9.4,
       shoulder: 0.7,
       bank: 0,
-      elevation: 12,
+      elevation: 140,
       camHeight: 1.68,
       speedHint: 120
     },
@@ -321,7 +321,7 @@
       road: 10.2,
       shoulder: 0.9,
       bank: 1,
-      elevation: 16,
+      elevation: 160,
       camHeight: 1.72,
       speedHint: 170
     },
@@ -332,7 +332,7 @@
       road: 12,
       shoulder: 1,
       bank: 0,
-      elevation: 28,
+      elevation: 210,
       camHeight: 1.76,
       speedHint: 210
     },
@@ -343,7 +343,7 @@
       road: 9.4,
       shoulder: 0.7,
       bank: 1,
-      elevation: 30,
+      elevation: 240,
       camHeight: 1.70,
       speedHint: 195
     },
@@ -354,7 +354,7 @@
       road: 10.8,
       shoulder: 0.9,
       bank: 0,
-      elevation: 28,
+      elevation: 230,
       camHeight: 1.74,
       speedHint: 180
     },
@@ -365,7 +365,7 @@
       road: 10.0,
       shoulder: 0.8,
       bank: -1,
-      elevation: 24,
+      elevation: 220,
       camHeight: 1.70,
       speedHint: 150
     },
@@ -376,18 +376,18 @@
       road: 7.8,
       shoulder: 0.4,
       bank: -8,
-      elevation: 20,
+      elevation: 225,
       camHeight: 1.58,
       speedHint: 90
     },
     {
       p: 0.624,
       label: { en: "Hohe Acht", cn: "高八" },
-      badge: { en: "High point", cn: "高位" },
+      badge: { en: "Summit", cn: "最高点" },
       road: 9.0,
       shoulder: 0.6,
       bank: 1,
-      elevation: 34,
+      elevation: 297,
       camHeight: 1.72,
       speedHint: 135
     },
@@ -398,7 +398,7 @@
       road: 9.2,
       shoulder: 0.7,
       bank: 0,
-      elevation: 32,
+      elevation: 280,
       camHeight: 1.70,
       speedHint: 140
     },
@@ -409,7 +409,7 @@
       road: 9.4,
       shoulder: 0.8,
       bank: 0,
-      elevation: 28,
+      elevation: 240,
       camHeight: 1.68,
       speedHint: 145
     },
@@ -420,7 +420,7 @@
       road: 9.6,
       shoulder: 0.8,
       bank: 0,
-      elevation: 26,
+      elevation: 220,
       camHeight: 1.70,
       speedHint: 140
     },
@@ -431,7 +431,7 @@
       road: 10.1,
       shoulder: 1.1,
       bank: 0,
-      elevation: 24,
+      elevation: 200,
       camHeight: 1.72,
       speedHint: 150
     },
@@ -442,7 +442,7 @@
       road: 10.0,
       shoulder: 1.0,
       bank: 0,
-      elevation: 22,
+      elevation: 185,
       camHeight: 1.70,
       speedHint: 140
     },
@@ -453,7 +453,7 @@
       road: 9.4,
       shoulder: 0.7,
       bank: -1,
-      elevation: 20,
+      elevation: 170,
       camHeight: 1.68,
       speedHint: 130
     },
@@ -464,7 +464,7 @@
       road: 9.2,
       shoulder: 0.8,
       bank: 2,
-      elevation: 14,
+      elevation: 150,
       camHeight: 1.68,
       speedHint: 180
     },
@@ -475,7 +475,7 @@
       road: 9.0,
       shoulder: 0.7,
       bank: 1,
-      elevation: 13,
+      elevation: 120,
       camHeight: 1.66,
       speedHint: 170
     },
@@ -486,18 +486,18 @@
       road: 9.0,
       shoulder: 0.7,
       bank: 0,
-      elevation: 12,
+      elevation: 100,
       camHeight: 1.66,
       speedHint: 140
     },
     {
       p: 0.793,
       label: { en: "Schwalbenschwanz", cn: "燕尾" },
-      badge: { en: "Compress", cn: "压缩段" },
+      badge: { en: "Descent", cn: "下坡" },
       road: 8.8,
       shoulder: 0.6,
       bank: -2,
-      elevation: 10,
+      elevation: 70,
       camHeight: 1.64,
       speedHint: 130
     },
@@ -508,7 +508,7 @@
       road: 8.4,
       shoulder: 0.5,
       bank: -5,
-      elevation: 10,
+      elevation: 55,
       camHeight: 1.62,
       speedHint: 120
     },
@@ -519,18 +519,18 @@
       road: 10.1,
       shoulder: 0.8,
       bank: 0,
-      elevation: 8,
+      elevation: 40,
       camHeight: 1.68,
       speedHint: 160
     },
     {
       p: 0.853,
       label: { en: "Döttinger Höhe", cn: "多廷根高地" },
-      badge: { en: "Long straight", cn: "长直道" },
+      badge: { en: "Lowest straight", cn: "最低直道" },
       road: 12.8,
       shoulder: 1.4,
       bank: 0,
-      elevation: 16,
+      elevation: 0,
       camHeight: 1.72,
       speedHint: 240
     },
@@ -541,7 +541,7 @@
       road: 10.8,
       shoulder: 1.0,
       bank: 0,
-      elevation: 6,
+      elevation: 50,
       camHeight: 1.72,
       speedHint: 200
     },
@@ -552,7 +552,7 @@
       road: 11.0,
       shoulder: 1.0,
       bank: 0,
-      elevation: 4,
+      elevation: 55,
       camHeight: 1.72,
       speedHint: 190
     },
@@ -563,7 +563,7 @@
       road: 11.4,
       shoulder: 1,
       bank: 0,
-      elevation: 2,
+      elevation: 60,
       camHeight: 1.74,
       speedHint: 170
     },
@@ -574,7 +574,7 @@
       road: 14.4,
       shoulder: 1.8,
       bank: 0,
-      elevation: 0,
+      elevation: 60,
       camHeight: 1.8,
       speedHint: 70
     }
