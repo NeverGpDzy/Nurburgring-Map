@@ -92,18 +92,18 @@
       bank: 0,
       elevation: 60,
       camHeight: 1.8,
-      speedHint: 90
+      speedHint: 120
     },
     {
       p: 0.006,
       label: { en: "Sabine-Schmitz-Kurve", cn: "萨宾娜弯" },
-      badge: { en: "Launch", cn: "起步段" },
+      badge: { en: "Braking", cn: "制动区" },
       road: 12.1,
       shoulder: 1.2,
       bank: 0,
       elevation: 58,
       camHeight: 1.75,
-      speedHint: 110
+      speedHint: 150
     },
     {
       p: 0.019,
@@ -114,18 +114,18 @@
       bank: -1,
       elevation: 50,
       camHeight: 1.70,
-      speedHint: 120
+      speedHint: 105
     },
     {
       p: 0.033,
       label: { en: "Hatzenbach", cn: "哈岑巴赫" },
-      badge: { en: "Technical", cn: "技术弯" },
+      badge: { en: "Flowing", cn: "流畅段" },
       road: 8.8,
       shoulder: 0.6,
       bank: -1,
       elevation: 45,
       camHeight: 1.68,
-      speedHint: 110
+      speedHint: 135
     },
     {
       p: 0.065,
@@ -136,7 +136,7 @@
       bank: 0,
       elevation: 65,
       camHeight: 1.68,
-      speedHint: 120
+      speedHint: 180
     },
     {
       p: 0.08,
@@ -158,18 +158,18 @@
       bank: 1,
       elevation: 110,
       camHeight: 1.72,
-      speedHint: 200
+      speedHint: 175
     },
     {
       p: 0.129,
       label: { en: "Kottenborn", cn: "科滕博恩" },
-      badge: { en: "Crest", cn: "起伏" },
+      badge: { en: "Braking", cn: "制动区" },
       road: 9.6,
       shoulder: 0.7,
       bank: 0,
       elevation: 120,
       camHeight: 1.70,
-      speedHint: 195
+      speedHint: 130
     },
     {
       p: 0.163,
@@ -191,18 +191,18 @@
       bank: 1,
       elevation: 140,
       camHeight: 1.70,
-      speedHint: 140
+      speedHint: 120
     },
     {
       p: 0.205,
       label: { en: "Foxhole", cn: "狐洞" },
-      badge: { en: "Downhill", cn: "下坡" },
+      badge: { en: "Fast downhill", cn: "高速下坡" },
       road: 8.7,
       shoulder: 0.5,
       bank: 0,
       elevation: 50,
       camHeight: 1.68,
-      speedHint: 135
+      speedHint: 185
     },
     {
       p: 0.237,
@@ -213,7 +213,7 @@
       bank: -1,
       elevation: 30,
       camHeight: 1.66,
-      speedHint: 80
+      speedHint: 90
     },
     {
       p: 0.277,
@@ -224,7 +224,7 @@
       bank: 0,
       elevation: 100,
       camHeight: 1.68,
-      speedHint: 130
+      speedHint: 115
     },
     {
       p: 0.291,
@@ -235,7 +235,7 @@
       bank: 0,
       elevation: 130,
       camHeight: 1.68,
-      speedHint: 125
+      speedHint: 115
     },
     {
       p: 0.305,
@@ -246,7 +246,7 @@
       bank: 0,
       elevation: 155,
       camHeight: 1.68,
-      speedHint: 100
+      speedHint: 90
     },
     {
       p: 0.319,
@@ -279,7 +279,7 @@
       bank: -1,
       elevation: 80,
       camHeight: 1.64,
-      speedHint: 80
+      speedHint: 70
     },
     {
       p: 0.372,
@@ -301,7 +301,7 @@
       bank: 0,
       elevation: 90,
       camHeight: 1.66,
-      speedHint: 85
+      speedHint: 110
     },
     {
       p: 0.408,
@@ -312,7 +312,7 @@
       bank: 0,
       elevation: 140,
       camHeight: 1.68,
-      speedHint: 90
+      speedHint: 100
     },
     {
       p: 0.42,
@@ -323,18 +323,18 @@
       bank: 1,
       elevation: 160,
       camHeight: 1.72,
-      speedHint: 135
+      speedHint: 80
     },
     {
       p: 0.466,
       label: { en: "Kesselchen", cn: "小谷" },
-      badge: { en: "Uphill", cn: "上坡" },
+      badge: { en: "Flowing", cn: "流畅段" },
       road: 12,
       shoulder: 1,
       bank: 0,
       elevation: 210,
       camHeight: 1.76,
-      speedHint: 210
+      speedHint: 125
     },
     {
       p: 0.513,
@@ -345,7 +345,7 @@
       bank: 1,
       elevation: 240,
       camHeight: 1.70,
-      speedHint: 190
+      speedHint: 130
     },
     {
       p: 0.531,
@@ -378,7 +378,7 @@
       bank: -8,
       elevation: 225,
       camHeight: 1.58,
-      speedHint: 75
+      speedHint: 70
     },
     {
       p: 0.624,
@@ -411,7 +411,7 @@
       bank: 0,
       elevation: 240,
       camHeight: 1.68,
-      speedHint: 140
+      speedHint: 120
     },
     {
       p: 0.662,
@@ -422,7 +422,7 @@
       bank: 0,
       elevation: 220,
       camHeight: 1.70,
-      speedHint: 135
+      speedHint: 110
     },
     {
       p: 0.681,
@@ -455,7 +455,7 @@
       bank: -1,
       elevation: 170,
       camHeight: 1.68,
-      speedHint: 125
+      speedHint: 120
     },
     {
       p: 0.721,
@@ -466,18 +466,18 @@
       bank: 2,
       elevation: 150,
       camHeight: 1.68,
-      speedHint: 185
+      speedHint: 150
     },
     {
       p: 0.746,
       label: { en: "Pflanzgarten 2", cn: "植物园 2" },
-      badge: { en: "Jump zone", cn: "跳跃段" },
+      badge: { en: "Complex", cn: "复合弯" },
       road: 9.0,
       shoulder: 0.7,
       bank: 1,
       elevation: 120,
       camHeight: 1.66,
-      speedHint: 190
+      speedHint: 140
     },
     {
       p: 0.763,
@@ -532,7 +532,7 @@
       bank: 0,
       elevation: 0,
       camHeight: 1.72,
-      speedHint: 260
+      speedHint: 265
     },
     {
       p: 0.947,
@@ -543,7 +543,7 @@
       bank: 0,
       elevation: 50,
       camHeight: 1.72,
-      speedHint: 210
+      speedHint: 110
     },
     {
       p: 0.966,
@@ -554,7 +554,7 @@
       bank: 0,
       elevation: 55,
       camHeight: 1.72,
-      speedHint: 190
+      speedHint: 140
     },
     {
       p: 0.981,
@@ -565,7 +565,7 @@
       bank: 0,
       elevation: 60,
       camHeight: 1.74,
-      speedHint: 170
+      speedHint: 110
     },
     {
       p: 0.994,
@@ -576,7 +576,7 @@
       bank: 0,
       elevation: 60,
       camHeight: 1.8,
-      speedHint: 90
+      speedHint: 120
     }
   ];
 
