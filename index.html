@@ -210,6 +210,11 @@
           <template v-if="lang == 'en'">About</template>
         </div>
 
+        <a class="link" :href="'drive.html?lang=' + lang">
+          <template v-if="lang == 'cn'">第一人称巡航</template>
+          <template v-if="lang == 'en'">Drive Mode</template>
+        </a>
+
         <div class="toggle-group" :class=" showAllCornerNames ? 'on' : 'off' " @click="showAllCornerNames = !showAllCornerNames">
           <span v-if="lang == 'cn'">所有弯道</span>
           <span v-if="lang == 'en'">All Corners</span>

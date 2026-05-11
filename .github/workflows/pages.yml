@@ -32,7 +32,7 @@ jobs:
       - name: Prepare static site
         run: |
           mkdir -p dist
-          cp index.html dist/
+          cp ./*.html dist/
           cp -R assets dist/
           touch dist/.nojekyll
 

@@ -12,6 +12,26 @@
   const SAMPLE_COUNT = 2400;
   const EDGE_LINE_WIDTH = 0.16;
   const LABEL_LEAD_TIME = 2.5;
+  const FOREST_SPACING_M = 34;
+  const DISTANCE_BOARD_OFFSET = 6.4;
+  const WORLD_UP = new THREE.Vector3(0, 1, 0);
+
+  const TRACKSIDE_SIGNS = [
+    { p: 0.002, label: "START", side: 1, accent: "#d9c16d" },
+    { p: 0.117, label: "FLUGPLATZ", side: -1, accent: "#9ec5ff" },
+    { p: 0.205, label: "FOXHOLE", side: 1, accent: "#ff725c" },
+    { p: 0.420, label: "BERGWERK", side: -1, accent: "#d9c16d" },
+    { p: 0.571, label: "KARUSSELL", side: 1, accent: "#ff725c" },
+    { p: 0.681, label: "BRUNNCHEN", side: -1, accent: "#9ec5ff" },
+    { p: 0.853, label: "DOT. HOHE", side: 1, accent: "#d9c16d" }
+  ];
+
+  const DISTANCE_BOARD_GROUPS = [
+    { p: 0.235, side: -1 },
+    { p: 0.566, side: 1 },
+    { p: 0.721, side: -1 },
+    { p: 0.966, side: 1 }
+  ];
 
   const ICONS = {
     play:
@@ -560,13 +580,11 @@
   ];
 
   const BARRIER_ZONES = [
-    { start: 0.0, end: 0.03, spacing: 8, side: "both", length: 5.8, height: 0.85, depth: 0.18 },
-    { start: 0.235, end: 0.256, spacing: 7, side: "both", length: 5.2, height: 0.8, depth: 0.18 },
-    { start: 0.566, end: 0.588, spacing: 6, side: "both", length: 4.2, height: 0.62, depth: 0.2 },
-    { start: 0.682, end: 0.703, spacing: 7, side: "both", length: 5.8, height: 0.85, depth: 0.18 },
-    { start: 0.721, end: 0.829, spacing: 9, side: "both", length: 5.8, height: 0.76, depth: 0.18 },
-    { start: 0.853, end: 0.945, spacing: 10, side: "both", length: 6.6, height: 0.8, depth: 0.18 },
-    { start: 0.966, end: 1.0, spacing: 7, side: "both", length: 5.8, height: 0.85, depth: 0.18 }
+    { start: 0.0, end: 0.04, spacing: 8.5, side: "both", length: 7.2, height: 1.1, depth: 0.16 },
+    { start: 0.18, end: 0.27, spacing: 8.5, side: "both", length: 7.2, height: 1.1, depth: 0.16 },
+    { start: 0.55, end: 0.59, spacing: 7.5, side: "both", length: 6.5, height: 1.05, depth: 0.16 },
+    { start: 0.68, end: 0.83, spacing: 8.5, side: "both", length: 7.2, height: 1.1, depth: 0.16 },
+    { start: 0.85, end: 0.96, spacing: 9.5, side: "both", length: 8.2, height: 1.08, depth: 0.16 }
   ];
 
   const KERB_ZONES = [
@@ -578,12 +596,36 @@
     { start: 0.962, end: 1.0, spacing: 5.2, side: "both", length: 4.0, width: 0.85 }
   ];
 
+  const KERB_STRIP_ZONES = [
+    { start: 0.052, end: 0.083, side: -1, width: 0.68 },
+    { start: 0.052, end: 0.083, side: 1, width: 0.68 },
+    { start: 0.235, end: 0.272, side: -1, width: 0.72 },
+    { start: 0.235, end: 0.272, side: 1, width: 0.72 },
+    { start: 0.552, end: 0.59, side: "inside", width: 0.76 },
+    { start: 0.694, end: 0.782, side: -1, width: 0.76 },
+    { start: 0.694, end: 0.782, side: 1, width: 0.76 },
+    { start: 0.81, end: 0.866, side: -1, width: 0.72 },
+    { start: 0.81, end: 0.866, side: 1, width: 0.72 },
+    { start: 0.962, end: 0.995, side: -1, width: 0.72 },
+    { start: 0.962, end: 0.995, side: 1, width: 0.72 }
+  ];
+
+  const SHOULDER_PATCH_ZONES = [
+    { start: 0.052, end: 0.083, side: "both", width: 0.62 },
+    { start: 0.235, end: 0.272, side: "both", width: 0.6 },
+    { start: 0.552, end: 0.59, side: "inside", width: 0.68 },
+    { start: 0.694, end: 0.782, side: "both", width: 0.64 },
+    { start: 0.81, end: 0.866, side: "both", width: 0.6 },
+    { start: 0.962, end: 0.995, side: "both", width: 0.62 }
+  ];
+
   const rootLang = resolveLang();
   document.documentElement.lang = rootLang === "cn" ? "zh-Hans" : "en";
   const defaultSpeedKmh = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 120 : 180;
   const DRIVE_DIRECTION = 1;
 
   const ui = {
+    app: document.querySelector(".drive-app"),
     title: document.getElementById("driveTitle"),
     subtitle: document.getElementById("driveSubtitle"),
     sectorLabel: document.getElementById("sectorLabel"),
@@ -627,7 +669,11 @@
     frameCount: SAMPLE_COUNT,
     currentSegment: PROFILE_ANCHORS[0],
     lastSegmentLabel: "",
-    lastLapFlash: 0
+    lastLapFlash: 0,
+    driveClock: 0,
+    lastCssSpeed: -1,
+    lastCssTurn: 99,
+    lastFov: 68
   };
 
   const runtimeFrame = createFrameScratch();
@@ -643,6 +689,9 @@
     target: new THREE.Vector3(),
     up: new THREE.Vector3()
   };
+  const skyRig = {
+    sunGlow: null
+  };
 
   state.meterPerSvgUnit = LAP_LENGTH_M / state.totalSvgLength;
 
@@ -655,82 +704,225 @@
 
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
   renderer.setSize(window.innerWidth, window.innerHeight, false);
-  renderer.setClearColor(0x071016, 1);
+  renderer.setClearColor(0x091116, 1);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.0;
+  renderer.toneMappingExposure = 1.16;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x071016);
-  scene.fog = new THREE.FogExp2(0x071016, 0.00018);
+  scene.background = new THREE.Color(0x0b1419);
+  scene.fog = new THREE.Fog(0xd8dccf, 460, 3600);
 
-  const camera = new THREE.PerspectiveCamera(68, window.innerWidth / window.innerHeight, 0.1, 30000);
+  const camera = new THREE.PerspectiveCamera(66, window.innerWidth / window.innerHeight, 0.1, 5200);
 
-  const hemi = new THREE.HemisphereLight(0xcfe4ff, 0x0d120f, 1.0);
-  const sun = new THREE.DirectionalLight(0xffffff, 1.5);
-  sun.position.set(-0.35, 1.0, 0.5);
-  scene.add(hemi, sun);
+  const hemi = new THREE.HemisphereLight(0xdceeff, 0x172318, 1.25);
+  const sun = new THREE.DirectionalLight(0xffe0a6, 2.25);
+  sun.position.set(-1600, 1650, 980);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(2048, 2048);
+  sun.shadow.camera.near = 1;
+  sun.shadow.camera.far = 5200;
+  sun.shadow.camera.left = -1700;
+  sun.shadow.camera.right = 1700;
+  sun.shadow.camera.top = 1700;
+  sun.shadow.camera.bottom = -1700;
+  sun.shadow.bias = -0.0002;
+  const fill = new THREE.DirectionalLight(0x9fc9ff, 0.48);
+  fill.position.set(900, 360, -1100);
+  scene.add(hemi, sun, fill);
+
+  const roadTexture = makeRoadTexture();
+  roadTexture.wrapS = THREE.RepeatWrapping;
+  roadTexture.wrapT = THREE.RepeatWrapping;
+  roadTexture.repeat.set(1100, 1.25);
+  roadTexture.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), 8);
+  roadTexture.colorSpace = THREE.SRGBColorSpace;
+
+  const shoulderTexture = makeGroundTexture("#6a7750", "#a7a26d", 0.42);
+  shoulderTexture.wrapS = THREE.RepeatWrapping;
+  shoulderTexture.wrapT = THREE.RepeatWrapping;
+  shoulderTexture.repeat.set(620, 1.4);
+  shoulderTexture.colorSpace = THREE.SRGBColorSpace;
+
+  const grassTexture = makeGroundTexture("#446438", "#aab26f", 0.82);
+  grassTexture.wrapS = THREE.RepeatWrapping;
+  grassTexture.wrapT = THREE.RepeatWrapping;
+  grassTexture.repeat.set(120, 120);
+  grassTexture.colorSpace = THREE.SRGBColorSpace;
+
+  const gravelTexture = makeGroundTexture("#716958", "#c1b48a", 0.95);
+  gravelTexture.wrapS = THREE.RepeatWrapping;
+  gravelTexture.wrapT = THREE.RepeatWrapping;
+  gravelTexture.repeat.set(820, 1.8);
+  gravelTexture.colorSpace = THREE.SRGBColorSpace;
+
+  const meadowTexture = makeGroundTexture("#557741", "#c8c382", 0.88);
+  meadowTexture.wrapS = THREE.RepeatWrapping;
+  meadowTexture.wrapT = THREE.RepeatWrapping;
+  meadowTexture.repeat.set(520, 2.4);
+  meadowTexture.colorSpace = THREE.SRGBColorSpace;
+
+  const kerbTexture = makeKerbTexture();
 
   const ground = new THREE.Mesh(
     new THREE.PlaneGeometry(28000, 28000),
     new THREE.MeshStandardMaterial({
-      color: 0x0d1b11,
+      color: 0x2f4a28,
+      map: grassTexture,
       roughness: 1,
       metalness: 0
     })
   );
   ground.rotation.x = -Math.PI / 2;
-  ground.position.y = 0;
+  ground.position.y = -0.12;
+  ground.receiveShadow = true;
   scene.add(ground);
 
   const roadMaterial = new THREE.MeshStandardMaterial({
-    color: 0x1a1d21,
-    roughness: 1,
+    color: 0x25282a,
+    map: roadTexture,
+    roughness: 0.83,
     metalness: 0,
     side: THREE.DoubleSide
   });
 
   const shoulderMaterial = new THREE.MeshStandardMaterial({
-    color: 0x283125,
-    roughness: 1,
-    metalness: 0,
-    side: THREE.DoubleSide
-  });
-
-  const edgeLineMaterial = new THREE.MeshStandardMaterial({
-    color: 0xd6d8cf,
+    color: 0x77734d,
+    map: shoulderTexture,
     roughness: 0.96,
     metalness: 0,
     side: THREE.DoubleSide
   });
 
-  const kerbRedMaterial = new THREE.MeshStandardMaterial({
-    color: 0xa72723,
-    roughness: 0.95,
-    metalness: 0
+  const edgeLineMaterial = new THREE.MeshStandardMaterial({
+    color: 0xf2ead4,
+    roughness: 0.76,
+    metalness: 0,
+    emissive: 0x17120a,
+    side: THREE.DoubleSide
   });
 
-  const kerbWhiteMaterial = new THREE.MeshStandardMaterial({
-    color: 0xe8e3d6,
-    roughness: 0.95,
-    metalness: 0
+  const tireMarkMaterial = new THREE.MeshStandardMaterial({
+    color: 0x0b0c0d,
+    roughness: 1,
+    metalness: 0,
+    transparent: true,
+    opacity: 0.34,
+    depthWrite: false,
+    side: THREE.DoubleSide
   });
 
-  const barrierMaterial = new THREE.MeshStandardMaterial({
-    color: 0x606873,
+  const vergeMaterial = new THREE.MeshStandardMaterial({
+    color: 0x607b36,
+    map: grassTexture,
     roughness: 0.98,
     metalness: 0,
     side: THREE.DoubleSide
   });
 
+  const gravelMaterial = new THREE.MeshStandardMaterial({
+    color: 0x8b805e,
+    map: gravelTexture,
+    roughness: 1,
+    metalness: 0,
+    side: THREE.DoubleSide
+  });
+
+  const meadowMaterial = new THREE.MeshStandardMaterial({
+    color: 0x6f7f3f,
+    map: meadowTexture,
+    roughness: 1,
+    metalness: 0,
+    side: THREE.DoubleSide
+  });
+
+  const kerbRedMaterial = new THREE.MeshStandardMaterial({
+    color: 0xc82f28,
+    roughness: 0.7,
+    metalness: 0,
+    side: THREE.DoubleSide
+  });
+
+  const kerbWhiteMaterial = new THREE.MeshStandardMaterial({
+    color: 0xf6ead4,
+    roughness: 0.64,
+    metalness: 0,
+    side: THREE.DoubleSide
+  });
+
+  const kerbStripeMaterial = new THREE.MeshStandardMaterial({
+    color: 0xffffff,
+    map: kerbTexture,
+    roughness: 0.66,
+    metalness: 0,
+    side: THREE.DoubleSide
+  });
+
+  const barrierMaterial = new THREE.MeshStandardMaterial({
+    color: 0xa4a9a4,
+    roughness: 0.3,
+    metalness: 0.7,
+    side: THREE.DoubleSide
+  });
+
+  const barrierCapMaterial = new THREE.MeshStandardMaterial({
+    color: 0xc9ced0,
+    roughness: 0.36,
+    metalness: 0.62
+  });
+
+  const barrierPostMaterial = new THREE.MeshStandardMaterial({
+    color: 0x5c6260,
+    roughness: 0.52,
+    metalness: 0.48
+  });
+
+  const treeTrunkMaterial = new THREE.MeshStandardMaterial({
+    color: 0x3e2d1f,
+    roughness: 0.96,
+    metalness: 0
+  });
+
+  const treeCanopyMaterial = new THREE.MeshStandardMaterial({
+    color: 0x234629,
+    roughness: 0.98,
+    metalness: 0
+  });
+
+  const grassClumpMaterial = new THREE.MeshStandardMaterial({
+    color: 0x8b8a4f,
+    roughness: 1,
+    metalness: 0
+  });
+
+  const signPostMaterial = new THREE.MeshStandardMaterial({
+    color: 0x707a7d,
+    roughness: 0.55,
+    metalness: 0.42
+  });
+
   const roadGroup = new THREE.Group();
   scene.add(roadGroup);
+  const environmentGroup = new THREE.Group();
+  scene.add(environmentGroup);
+  const cockpitGroup = new THREE.Group();
+  cockpitGroup.renderOrder = 20;
+  camera.add(cockpitGroup);
+  scene.add(camera);
 
   buildFrames();
+  buildSkyDome();
   buildRoad();
   buildEdgeLines();
-  buildKerbs();
+  buildShoulderPatches();
+  buildKerbStrips();
   buildBarriers();
+  buildForest();
+  buildGrassClumps();
+  buildTracksideSigns();
+  buildDistanceBoards();
 
   ui.title.textContent = COPY[state.lang].title;
   ui.subtitle.textContent = COPY[state.lang].subtitle;
@@ -843,7 +1035,11 @@
 
   function resolveInitialSpeed(defaultSpeed) {
     const params = new URLSearchParams(window.location.search);
-    const value = Number(params.get("speed"));
+    const raw = params.get("speed");
+    if (!raw) {
+      return defaultSpeed;
+    }
+    const value = Number(raw);
     if (!Number.isFinite(value)) {
       return defaultSpeed;
     }
@@ -852,6 +1048,11 @@
 
   function clamp(value, min, max) {
     return Math.max(min, Math.min(max, value));
+  }
+
+  function seededNoise(value) {
+    const x = Math.sin(value * 12.9898 + 78.233) * 43758.5453;
+    return x - Math.floor(x);
   }
 
   function createFrameScratch() {
@@ -873,12 +1074,187 @@
     };
   }
 
+  function makeRoadTexture() {
+    const size = 512;
+    const textureCanvas = document.createElement("canvas");
+    textureCanvas.width = size;
+    textureCanvas.height = size;
+    const ctx = textureCanvas.getContext("2d");
+    const base = ctx.createLinearGradient(0, 0, 0, size);
+    base.addColorStop(0, "#202326");
+    base.addColorStop(0.48, "#2b2d2f");
+    base.addColorStop(1, "#171a1c");
+    ctx.fillStyle = base;
+    ctx.fillRect(0, 0, size, size);
+
+    const image = ctx.getImageData(0, 0, size, size);
+    const data = image.data;
+    for (let index = 0; index < data.length; index += 4) {
+      const n = seededNoise(index * 0.013) * 22 - 11;
+      data[index] = clamp(data[index] + n, 0, 255);
+      data[index + 1] = clamp(data[index + 1] + n, 0, 255);
+      data[index + 2] = clamp(data[index + 2] + n, 0, 255);
+    }
+    ctx.putImageData(image, 0, 0);
+
+    ctx.globalAlpha = 0.16;
+    for (let y = 0; y < size; y += 13) {
+      ctx.fillStyle = y % 39 === 0 ? "#070808" : "#4f5354";
+      ctx.fillRect(0, y, size, 1);
+    }
+    ctx.globalAlpha = 0.22;
+    ctx.fillStyle = "#090909";
+    ctx.fillRect(size * 0.32, 0, 12, size);
+    ctx.fillRect(size * 0.66, 0, 10, size);
+    ctx.globalAlpha = 0.08;
+    ctx.fillStyle = "#f1e7d3";
+    ctx.fillRect(size * 0.5 - 1, 0, 2, size);
+    ctx.globalAlpha = 1;
+
+    const texture = new THREE.CanvasTexture(textureCanvas);
+    texture.needsUpdate = true;
+    return texture;
+  }
+
+  function makeGroundTexture(a, b, fleckStrength) {
+    const size = 256;
+    const textureCanvas = document.createElement("canvas");
+    textureCanvas.width = size;
+    textureCanvas.height = size;
+    const ctx = textureCanvas.getContext("2d");
+    const gradient = ctx.createLinearGradient(0, 0, size, size);
+    gradient.addColorStop(0, a);
+    gradient.addColorStop(1, b);
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, size, size);
+
+    for (let i = 0; i < 1800; i += 1) {
+      const x = seededNoise(i * 2.13) * size;
+      const y = seededNoise(i * 4.71 + 8) * size;
+      const alpha = 0.08 + seededNoise(i * 0.9) * 0.13 * fleckStrength;
+      ctx.fillStyle = seededNoise(i) > 0.55 ? `rgba(215, 196, 120, ${alpha})` : `rgba(4, 11, 5, ${alpha})`;
+      ctx.fillRect(x, y, 1 + seededNoise(i + 2) * 3, 1 + seededNoise(i + 4) * 2);
+    }
+
+    const texture = new THREE.CanvasTexture(textureCanvas);
+    texture.needsUpdate = true;
+    return texture;
+  }
+
+  function makeKerbTexture() {
+    const width = 256;
+    const height = 64;
+    const textureCanvas = document.createElement("canvas");
+    textureCanvas.width = width;
+    textureCanvas.height = height;
+    const ctx = textureCanvas.getContext("2d");
+    ctx.fillStyle = "#f5ead7";
+    ctx.fillRect(0, 0, width, height);
+
+    for (let x = -height; x < width + height; x += 56) {
+      ctx.fillStyle = "#c82f28";
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x + 32, 0);
+      ctx.lineTo(x + 32 + height, height);
+      ctx.lineTo(x + height, height);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    ctx.globalAlpha = 0.25;
+    ctx.fillStyle = "#24150f";
+    ctx.fillRect(0, height - 5, width, 2);
+    ctx.globalAlpha = 0.16;
+    for (let i = 0; i < 220; i += 1) {
+      const x = seededNoise(i * 2.4) * width;
+      const y = seededNoise(i * 4.2) * height;
+      ctx.fillRect(x, y, 1 + seededNoise(i) * 2, 1);
+    }
+    ctx.globalAlpha = 1;
+
+    const texture = new THREE.CanvasTexture(textureCanvas);
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.ClampToEdgeWrapping;
+    texture.repeat.set(1.25, 1);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.needsUpdate = true;
+    return texture;
+  }
+
+  function makeSignTexture(label, accent = "#d9c16d", compact = false) {
+    const width = compact ? 180 : 384;
+    const height = compact ? 112 : 160;
+    const textureCanvas = document.createElement("canvas");
+    textureCanvas.width = width;
+    textureCanvas.height = height;
+    const ctx = textureCanvas.getContext("2d");
+    ctx.fillStyle = "#0b1113";
+    ctx.fillRect(0, 0, width, height);
+    ctx.strokeStyle = accent;
+    ctx.lineWidth = compact ? 8 : 10;
+    ctx.strokeRect(ctx.lineWidth / 2, ctx.lineWidth / 2, width - ctx.lineWidth, height - ctx.lineWidth);
+    ctx.fillStyle = accent;
+    ctx.fillRect(0, 0, width, compact ? 18 : 22);
+    ctx.fillStyle = "#f6f0df";
+    ctx.font = compact ? "700 46px Arial, sans-serif" : "700 38px Arial, sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(label, width / 2, compact ? height * 0.58 : height * 0.56, width - 26);
+    ctx.globalAlpha = 0.24;
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(18, 32, width - 36, 2);
+    ctx.globalAlpha = 1;
+
+    const texture = new THREE.CanvasTexture(textureCanvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.needsUpdate = true;
+    return texture;
+  }
+
+  function makeCockpitTexture() {
+    const width = 1024;
+    const height = 320;
+    const textureCanvas = document.createElement("canvas");
+    textureCanvas.width = width;
+    textureCanvas.height = height;
+    const ctx = textureCanvas.getContext("2d");
+    ctx.clearRect(0, 0, width, height);
+
+    const dash = ctx.createLinearGradient(0, height * 0.24, 0, height);
+    dash.addColorStop(0, "rgba(6, 8, 9, 0)");
+    dash.addColorStop(0.5, "rgba(8, 10, 11, 0.48)");
+    dash.addColorStop(1, "rgba(2, 3, 4, 0.88)");
+    ctx.fillStyle = dash;
+    ctx.fillRect(0, height * 0.2, width, height * 0.8);
+
+    ctx.fillStyle = "rgba(18, 21, 22, 0.62)";
+    ctx.beginPath();
+    ctx.ellipse(width * 0.5, height * 0.98, width * 0.33, height * 0.16, 0, Math.PI, Math.PI * 2);
+    ctx.fill();
+
+    ctx.globalAlpha = 0.24;
+    ctx.strokeStyle = "#d9c16d";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(width * 0.24, height * 0.58);
+    ctx.lineTo(width * 0.76, height * 0.58);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    const texture = new THREE.CanvasTexture(textureCanvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.needsUpdate = true;
+    return texture;
+  }
+
   function cloneFrameForPlacement(frame) {
     return {
       position: frame.position.clone(),
       tangent: frame.tangent.clone(),
       right: frame.right.clone(),
       up: frame.up.clone(),
+      distance: frame.distance,
       road: frame.road,
       shoulder: frame.shoulder,
       turn: frame.turn
@@ -1103,10 +1479,33 @@
   }
 
   function buildRoad() {
-    const shoulder = buildRibbon((frame) => frame.road + frame.shoulder * 2, -0.08, shoulderMaterial);
-    const road = buildRibbon((frame) => frame.road, 0.04, roadMaterial);
-    roadGroup.add(shoulder);
+    const roadEdge = (frame) => frame.road / 2;
+    const vergeWidth = () => 2.6;
+    const meadowWidth = (frame) => 38 + frame.shoulder * 1.25;
+    const addSideBand = (widthAccessor, offsetAccessor, lift, material) => {
+      const leftBand = buildOffsetRibbon(widthAccessor, (frame) => -offsetAccessor(frame), lift, material);
+      const rightBand = buildOffsetRibbon(widthAccessor, offsetAccessor, lift, material);
+      leftBand.receiveShadow = true;
+      rightBand.receiveShadow = true;
+      roadGroup.add(leftBand, rightBand);
+    };
+
+    addSideBand(
+      meadowWidth,
+      (frame) => roadEdge(frame) + vergeWidth(frame) + meadowWidth(frame) / 2,
+      -0.22,
+      meadowMaterial
+    );
+    addSideBand(
+      vergeWidth,
+      (frame) => roadEdge(frame) + vergeWidth(frame) / 2,
+      -0.04,
+      vergeMaterial
+    );
+    const road = buildRibbon((frame) => frame.road, 0.045, roadMaterial);
+    road.receiveShadow = true;
     roadGroup.add(road);
+    buildTireMarks();
   }
 
   function buildOffsetRibbon(widthAccessor, offsetAccessor, lift, material) {
@@ -1160,6 +1559,96 @@
     return new THREE.Mesh(geometry, material);
   }
 
+  function buildFrameRibbon(frames, widthAccessor, offsetAccessor, lift, material, closed = false) {
+    if (!frames.length) {
+      return null;
+    }
+
+    const vertexCount = frames.length * 2;
+    const positions = new Float32Array(vertexCount * 3);
+    const uvs = new Float32Array(vertexCount * 2);
+    const segmentCount = closed ? frames.length : Math.max(0, frames.length - 1);
+    const indices = new Uint32Array(segmentCount * 6);
+    const startDistance = frames[0].distance || 0;
+    const endDistance = frames[frames.length - 1].distance || startDistance + 1;
+    const span = Math.max(1, endDistance - startDistance);
+
+    for (let index = 0; index < frames.length; index += 1) {
+      const frame = frames[index];
+      const width = widthAccessor(frame, index, frames);
+      const offset = offsetAccessor(frame, index, frames);
+      const center = frame.position.clone()
+        .addScaledVector(frame.right, offset)
+        .addScaledVector(frame.up, lift);
+      const left = center.clone().addScaledVector(frame.right, -width / 2);
+      const right = center.clone().addScaledVector(frame.right, width / 2);
+
+      const vert = index * 6;
+      positions[vert] = left.x;
+      positions[vert + 1] = left.y;
+      positions[vert + 2] = left.z;
+      positions[vert + 3] = right.x;
+      positions[vert + 4] = right.y;
+      positions[vert + 5] = right.z;
+
+      const uv = index * 4;
+      const u = ((frame.distance || startDistance) - startDistance) / span;
+      uvs[uv] = u * 6;
+      uvs[uv + 1] = 0;
+      uvs[uv + 2] = u * 6;
+      uvs[uv + 3] = 1;
+
+      if (index < frames.length - 1 || closed) {
+        const nextBase = ((index + 1) % frames.length) * 2;
+        const row = index * 6;
+        const base = index * 2;
+        indices[row] = base;
+        indices[row + 1] = base + 1;
+        indices[row + 2] = nextBase;
+        indices[row + 3] = base + 1;
+        indices[row + 4] = nextBase + 1;
+        indices[row + 5] = nextBase;
+      }
+    }
+
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+    geometry.setAttribute("uv", new THREE.BufferAttribute(uvs, 2));
+    geometry.setIndex(new THREE.BufferAttribute(indices, 1));
+    geometry.computeVertexNormals();
+
+    return new THREE.Mesh(geometry, material);
+  }
+
+  function collectZoneFrames(start, end) {
+    const frames = [];
+    const scratch = createFrameScratch();
+    const zoneStart = wrap01(start);
+    const zoneEnd = wrap01(end);
+
+    const appendSample = (progress) => {
+      const sample = sampleFrame(progress, scratch, 1);
+      sample.distance = progress * LAP_LENGTH_M;
+      frames.push(cloneFrameForPlacement(sample));
+    };
+
+    appendSample(zoneStart);
+    state.frames.forEach((frame) => {
+      if (zoneStart <= zoneEnd) {
+        if (frame.u > zoneStart && frame.u < zoneEnd) {
+          frames.push(cloneFrameForPlacement(frame));
+        }
+      } else if (frame.u > zoneStart || frame.u < zoneEnd) {
+        const copy = cloneFrameForPlacement(frame);
+        copy.distance = frame.u > zoneStart ? frame.distance : frame.distance + LAP_LENGTH_M;
+        frames.push(copy);
+      }
+    });
+    appendSample(zoneEnd > zoneStart ? zoneEnd : zoneEnd + 1);
+
+    return frames;
+  }
+
   function buildEdgeLines() {
     const inset = 0.22;
     const leftLine = buildOffsetRibbon(
@@ -1177,113 +1666,436 @@
     roadGroup.add(leftLine, rightLine);
   }
 
-  function buildKerbs() {
-    const redPlacements = [];
-    const whitePlacements = [];
-    let blockIndex = 0;
-    const staticFrame = createFrameScratch();
+  function buildTireMarks() {
+    const leftMark = buildOffsetRibbon(
+      () => 0.18,
+      (frame) => -Math.min(frame.road * 0.22, 1.15) + frame.turn * 0.18,
+      0.095,
+      tireMarkMaterial
+    );
+    const rightMark = buildOffsetRibbon(
+      () => 0.16,
+      (frame) => Math.min(frame.road * 0.22, 1.15) + frame.turn * 0.18,
+      0.096,
+      tireMarkMaterial
+    );
+    leftMark.renderOrder = 2;
+    rightMark.renderOrder = 2;
+    roadGroup.add(leftMark, rightMark);
+  }
 
-    KERB_ZONES.forEach((zone) => {
-      for (let distance = zone.start * LAP_LENGTH_M; distance < zone.end * LAP_LENGTH_M; distance += zone.spacing) {
-        const frame = mapFrameAt(distance / LAP_LENGTH_M, staticFrame);
-        const sides = sidesForKerb(zone, frame);
-        sides.forEach((side) => {
-          const placement = { frame: cloneFrameForPlacement(frame), side, zone };
-          if (blockIndex % 2 === 0) {
-            redPlacements.push(placement);
-          } else {
-            whitePlacements.push(placement);
+  function buildKerbStrips() {
+    KERB_STRIP_ZONES.forEach((zone) => {
+      const frames = collectZoneFrames(zone.start, zone.end);
+      const strip = buildFrameRibbon(
+        frames,
+        () => zone.width,
+        (frame) => {
+          const roadEdge = frame.road / 2;
+          if (zone.side === "inside") {
+            return frame.turn >= 0 ? -roadEdge - frame.shoulder * 0.28 : roadEdge + frame.shoulder * 0.28;
           }
-          blockIndex += 1;
-        });
+          return zone.side < 0 ? -roadEdge - frame.shoulder * 0.18 : roadEdge + frame.shoulder * 0.18;
+        },
+        0.11,
+        kerbStripeMaterial,
+        false
+      );
+      if (strip) {
+        strip.renderOrder = 3;
+        roadGroup.add(strip);
       }
     });
-
-    addKerbMesh(redPlacements, kerbRedMaterial);
-    addKerbMesh(whitePlacements, kerbWhiteMaterial);
   }
 
-  function sidesForKerb(zone, frame) {
-    if (zone.side === "left") {
-      return [-1];
-    }
-    if (zone.side === "right") {
-      return [1];
-    }
-    if (zone.side === "inside") {
-      return [frame.turn >= 0 ? -1 : 1];
-    }
-    return [-1, 1];
+  function buildShoulderPatches() {
+    SHOULDER_PATCH_ZONES.forEach((zone) => {
+      const frames = collectZoneFrames(zone.start, zone.end);
+      const patch = buildFrameRibbon(
+        frames,
+        () => zone.width,
+        (frame) => {
+          const roadEdge = frame.road / 2;
+          if (zone.side === "inside") {
+            return frame.turn >= 0 ? -roadEdge - frame.shoulder * 0.48 : roadEdge + frame.shoulder * 0.48;
+          }
+          return zone.side < 0 ? -roadEdge - frame.shoulder * 0.42 : roadEdge + frame.shoulder * 0.42;
+        },
+        -0.026,
+        shoulderMaterial,
+        false
+      );
+      if (patch) {
+        patch.renderOrder = 2;
+        roadGroup.add(patch);
+      }
+    });
   }
 
-  function addKerbMesh(placements, material) {
+  function buildSkyDome() {
+    const skyCanvas = document.createElement("canvas");
+    skyCanvas.width = 1024;
+    skyCanvas.height = 512;
+    const ctx = skyCanvas.getContext("2d");
+    const gradient = ctx.createLinearGradient(0, 0, 0, skyCanvas.height);
+    gradient.addColorStop(0, "#6e8f9d");
+    gradient.addColorStop(0.28, "#bcced3");
+    gradient.addColorStop(0.58, "#efe8c9");
+    gradient.addColorStop(0.78, "#e0d7b3");
+    gradient.addColorStop(1, "#c8c6b0");
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, skyCanvas.width, skyCanvas.height);
+
+    ctx.globalAlpha = 0.32;
+    for (let i = 0; i < 24; i += 1) {
+      const y = 42 + seededNoise(i * 9.1) * 190;
+      const x = seededNoise(i * 5.3) * skyCanvas.width;
+      const w = 150 + seededNoise(i * 2.7) * 340;
+      const h = 12 + seededNoise(i * 4.2) * 34;
+      const cloud = ctx.createRadialGradient(x, y, 0, x, y, w);
+      cloud.addColorStop(0, "rgba(255,255,255,0.68)");
+      cloud.addColorStop(0.55, "rgba(255,255,255,0.22)");
+      cloud.addColorStop(1, "rgba(255,255,255,0)");
+      ctx.fillStyle = cloud;
+      ctx.beginPath();
+      ctx.ellipse(x, y, w, h, seededNoise(i) * 0.25, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+
+    const sun = ctx.createRadialGradient(178, 92, 0, 178, 92, 132);
+    sun.addColorStop(0, "rgba(255, 247, 214, 0.92)");
+    sun.addColorStop(0.32, "rgba(255, 226, 162, 0.38)");
+    sun.addColorStop(1, "rgba(255, 226, 162, 0)");
+    ctx.fillStyle = sun;
+    ctx.beginPath();
+    ctx.arc(178, 92, 118, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = "rgba(104, 120, 88, 0.17)";
+    ctx.beginPath();
+    ctx.moveTo(0, 390);
+    for (let x = 0; x <= skyCanvas.width; x += 48) {
+      const y = 344 + seededNoise(x * 0.17) * 28;
+      ctx.lineTo(x, y);
+    }
+    ctx.lineTo(skyCanvas.width, skyCanvas.height);
+    ctx.lineTo(0, skyCanvas.height);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = "rgba(84, 97, 74, 0.08)";
+    ctx.beginPath();
+    ctx.moveTo(0, 414);
+    for (let x = 0; x <= skyCanvas.width; x += 38) {
+      ctx.lineTo(x, 390 + seededNoise(x * 0.39 + 14) * 20);
+    }
+    ctx.lineTo(skyCanvas.width, skyCanvas.height);
+    ctx.lineTo(0, skyCanvas.height);
+    ctx.closePath();
+    ctx.fill();
+
+    const mist = ctx.createLinearGradient(0, 300, 0, skyCanvas.height);
+    mist.addColorStop(0, "rgba(255,255,255,0)");
+    mist.addColorStop(0.6, "rgba(245,243,231,0.14)");
+    mist.addColorStop(1, "rgba(232,233,221,0.34)");
+    ctx.fillStyle = mist;
+    ctx.fillRect(0, 300, skyCanvas.width, skyCanvas.height - 300);
+
+    const skyTexture = new THREE.CanvasTexture(skyCanvas);
+    skyTexture.colorSpace = THREE.SRGBColorSpace;
+    skyTexture.mapping = THREE.UVMapping;
+    skyTexture.needsUpdate = true;
+    scene.background = skyTexture;
+
+    const sunGlow = new THREE.Mesh(
+      new THREE.PlaneGeometry(900, 900),
+      new THREE.MeshBasicMaterial({
+        color: 0xffd889,
+        transparent: true,
+        opacity: 0.16,
+        depthWrite: false,
+        fog: false,
+        side: THREE.DoubleSide
+      })
+    );
+    sunGlow.position.set(-3500, 1450, 2300);
+    sunGlow.lookAt(0, 120, 0);
+    environmentGroup.add(sunGlow);
+    skyRig.sunGlow = sunGlow;
+  }
+
+  function buildForest() {
+    const placements = [];
+    const staticFrame = createFrameScratch();
+    for (let distance = 0; distance < LAP_LENGTH_M; distance += FOREST_SPACING_M) {
+      const progress = distance / LAP_LENGTH_M;
+      if (progress < 0.04 || progress > 0.97) {
+        continue;
+      }
+      const frame = mapFrameAt(distance / LAP_LENGTH_M, staticFrame);
+      [-1, 1].forEach((side) => {
+        const densityNoise = seededNoise(distance * 0.071 + side * 17);
+        if (densityNoise < 0.14) {
+          return;
+        }
+        const offset = frame.road / 2 + frame.shoulder + 24 + seededNoise(distance * 0.11 + side) * 34;
+        const height = 4.2 + seededNoise(distance * 0.23 + side * 9) * 5.6;
+        const radius = 0.92 + seededNoise(distance * 0.31 + side * 4) * 1.55;
+        placements.push({
+          frame: cloneFrameForPlacement(frame),
+          side,
+          offset,
+          height,
+          radius,
+          lean: (seededNoise(distance * 0.41 + side) - 0.5) * 0.18
+        });
+      });
+    }
+
     if (!placements.length) {
       return;
     }
 
-    const kerbGeo = new THREE.BoxGeometry(1, 1, 1);
-    const kerbMesh = new THREE.InstancedMesh(kerbGeo, material, placements.length);
+    const trunkGeo = new THREE.CylinderGeometry(0.24, 0.38, 1, 7);
+    const canopyGeo = new THREE.ConeGeometry(1, 1, 10);
+    const trunkMesh = new THREE.InstancedMesh(trunkGeo, treeTrunkMaterial, placements.length);
+    const canopyMesh = new THREE.InstancedMesh(canopyGeo, treeCanopyMaterial, placements.length);
+    trunkMesh.castShadow = true;
+    canopyMesh.castShadow = true;
+    trunkMesh.receiveShadow = true;
+    canopyMesh.receiveShadow = true;
+
     const matrix = new THREE.Matrix4();
     const quat = new THREE.Quaternion();
-    const basis = new THREE.Matrix4();
+    const scale = new THREE.Vector3();
+    const axis = new THREE.Vector3(1, 0, 0);
 
     placements.forEach((placement, index) => {
-      const { frame, side, zone } = placement;
-      const offset = frame.road / 2 + Math.min(frame.shoulder, 1.1) * 0.45;
-      const position = frame.position.clone()
-        .addScaledVector(frame.right, side * offset)
-        .addScaledVector(frame.up, 0.08);
-      basis.makeBasis(frame.tangent, frame.up, frame.right);
-      quat.setFromRotationMatrix(basis);
+      const base = placement.frame.position.clone()
+        .addScaledVector(placement.frame.right, placement.side * placement.offset);
+      const up = placement.frame.up;
+      quat.setFromAxisAngle(axis, placement.lean);
       matrix.compose(
-        position,
+        base.clone().addScaledVector(up, -0.14 + placement.height * 0.16),
         quat,
-        new THREE.Vector3(zone.length, 0.04, zone.width)
+        scale.set(0.52, placement.height * 0.38, 0.52)
       );
-      kerbMesh.setMatrixAt(index, matrix);
+      trunkMesh.setMatrixAt(index, matrix);
+
+      const canopyOffset = placement.height * 0.43;
+      matrix.compose(
+        base.clone().addScaledVector(up, canopyOffset),
+        quat,
+        scale.set(placement.radius * 1.02, placement.height * 0.62, placement.radius * 1.02)
+      );
+      canopyMesh.setMatrixAt(index, matrix);
     });
 
-    roadGroup.add(kerbMesh);
+    environmentGroup.add(trunkMesh, canopyMesh);
+  }
+
+  function buildGrassClumps() {
+    const placements = [];
+    const staticFrame = createFrameScratch();
+    for (let distance = 18; distance < LAP_LENGTH_M; distance += 18) {
+      const frame = mapFrameAt(distance / LAP_LENGTH_M, staticFrame);
+      [-1, 1].forEach((side) => {
+        if (seededNoise(distance * 0.42 + side * 3) < 0.36) {
+          return;
+        }
+        const offset = frame.road / 2 + frame.shoulder + 2.1 + seededNoise(distance * 0.17 + side) * 6.4;
+        placements.push({
+          frame: cloneFrameForPlacement(frame),
+          side,
+          offset,
+          height: 0.18 + seededNoise(distance * 0.6 + side) * 0.32,
+          width: 0.2 + seededNoise(distance * 0.28 + side) * 0.34
+        });
+      });
+    }
+
+    if (!placements.length) {
+      return;
+    }
+
+    const clumpGeo = new THREE.ConeGeometry(1, 1, 4);
+    const clumpMesh = new THREE.InstancedMesh(clumpGeo, grassClumpMaterial, placements.length);
+    clumpMesh.castShadow = true;
+    clumpMesh.receiveShadow = true;
+    const matrix = new THREE.Matrix4();
+    const quat = new THREE.Quaternion();
+    const scale = new THREE.Vector3();
+
+    placements.forEach((placement, index) => {
+      const frame = placement.frame;
+      const position = frame.position.clone()
+        .addScaledVector(frame.right, placement.side * placement.offset)
+        .addScaledVector(frame.up, -0.12 + placement.height * 0.08);
+      quat.setFromAxisAngle(frame.tangent, (seededNoise(index * 1.7) - 0.5) * 0.38);
+      matrix.compose(position, quat, scale.set(placement.width, placement.height, placement.width));
+      clumpMesh.setMatrixAt(index, matrix);
+    });
+
+    roadGroup.add(clumpMesh);
+  }
+
+  function buildTracksideSigns() {
+    const staticFrame = createFrameScratch();
+    TRACKSIDE_SIGNS.forEach((sign) => {
+      const frame = mapFrameAt(sign.p, staticFrame);
+      const group = new THREE.Group();
+      const offset = frame.road / 2 + frame.shoulder + 4.8;
+      group.position.copy(frame.position)
+        .addScaledVector(frame.right, sign.side * offset)
+        .addScaledVector(WORLD_UP, 2.35);
+      group.lookAt(frame.position.clone().addScaledVector(frame.tangent, 25));
+
+      const postGeo = new THREE.CylinderGeometry(0.05, 0.05, 2.5, 8);
+      const leftPost = new THREE.Mesh(postGeo, signPostMaterial);
+      const rightPost = new THREE.Mesh(postGeo, signPostMaterial);
+      leftPost.position.set(-1.05, -0.85, 0);
+      rightPost.position.set(1.05, -0.85, 0);
+      leftPost.castShadow = true;
+      rightPost.castShadow = true;
+
+      const board = new THREE.Mesh(
+        new THREE.PlaneGeometry(2.8, 1.18),
+        new THREE.MeshStandardMaterial({
+          map: makeSignTexture(sign.label, sign.accent),
+          roughness: 0.48,
+          metalness: 0.04,
+          side: THREE.DoubleSide
+        })
+      );
+      board.castShadow = true;
+      board.receiveShadow = true;
+      group.add(leftPost, rightPost, board);
+      environmentGroup.add(group);
+    });
+  }
+
+  function buildDistanceBoards() {
+    const staticFrame = createFrameScratch();
+    DISTANCE_BOARD_GROUPS.forEach((group) => {
+      [150, 100, 50].forEach((mark, index) => {
+        const boardProgress = wrap01(group.p - (mark / LAP_LENGTH_M));
+        const frame = mapFrameAt(boardProgress, staticFrame);
+        const marker = new THREE.Group();
+        const offset = frame.road / 2 + frame.shoulder + DISTANCE_BOARD_OFFSET;
+        marker.position.copy(frame.position)
+          .addScaledVector(frame.right, group.side * offset)
+          .addScaledVector(WORLD_UP, 1.55);
+        marker.lookAt(frame.position.clone().addScaledVector(frame.tangent, 18));
+        const post = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.045, 0.045, 1.7, 8),
+          signPostMaterial
+        );
+        post.position.y = -0.48;
+        const board = new THREE.Mesh(
+          new THREE.PlaneGeometry(1.05, 0.7),
+          new THREE.MeshStandardMaterial({
+            map: makeSignTexture(String(mark), index === 2 ? "#ff725c" : "#f5efe2", true),
+            roughness: 0.5,
+            side: THREE.DoubleSide
+          })
+        );
+        marker.add(post, board);
+        environmentGroup.add(marker);
+      });
+    });
+  }
+
+  function buildCockpitOverlay() {
+    const texture = makeCockpitTexture();
+    const material = new THREE.MeshBasicMaterial({
+      map: texture,
+      transparent: true,
+      depthTest: false,
+      depthWrite: false,
+      fog: false
+    });
+    const cockpit = new THREE.Mesh(new THREE.PlaneGeometry(1.72, 0.54), material);
+    cockpit.position.set(0, -0.52, -0.86);
+    cockpit.renderOrder = 40;
+    cockpitGroup.add(cockpit);
   }
 
   function buildBarriers() {
     const placements = [];
+    const zoneGroups = new Map();
     const staticFrame = createFrameScratch();
-    BARRIER_ZONES.forEach((zone) => {
+    BARRIER_ZONES.forEach((zone, zoneIndex) => {
       for (let distance = zone.start * LAP_LENGTH_M; distance < zone.end * LAP_LENGTH_M; distance += zone.spacing) {
         const frame = mapFrameAt(distance / LAP_LENGTH_M, staticFrame);
         if (zone.side === "both" || zone.side === "left") {
-          placements.push({ frame: cloneFrameForPlacement(frame), side: -1, zone });
+          const placement = { frame: cloneFrameForPlacement(frame), side: -1, zone, zoneIndex };
+          placements.push(placement);
+          const key = `${zoneIndex}:left`;
+          if (!zoneGroups.has(key)) {
+            zoneGroups.set(key, []);
+          }
+          zoneGroups.get(key).push(placement);
         }
         if (zone.side === "both" || zone.side === "right") {
-          placements.push({ frame: cloneFrameForPlacement(frame), side: 1, zone });
+          const placement = { frame: cloneFrameForPlacement(frame), side: 1, zone, zoneIndex };
+          placements.push(placement);
+          const key = `${zoneIndex}:right`;
+          if (!zoneGroups.has(key)) {
+            zoneGroups.set(key, []);
+          }
+          zoneGroups.get(key).push(placement);
         }
       }
     });
 
-    const barrierGeo = new THREE.BoxGeometry(1, 1, 1);
-    const barrierMesh = new THREE.InstancedMesh(barrierGeo, barrierMaterial, placements.length);
+    const upperRails = [];
+    const lowerRails = [];
+    zoneGroups.forEach((groupPlacements) => {
+      if (!groupPlacements.length) {
+        return;
+      }
+      groupPlacements.sort((a, b) => a.frame.distance - b.frame.distance);
+      const { zone, side } = groupPlacements[0];
+      const frames = groupPlacements.map((placement) => placement.frame);
+      const offsetAccessor = (frame) => side * (frame.road / 2 + frame.shoulder + 1.45);
+      const upperRail = buildFrameRibbon(frames, () => 0.18, offsetAccessor, zone.height * 0.64, barrierMaterial);
+      const lowerRail = buildFrameRibbon(frames, () => 0.16, offsetAccessor, zone.height * 0.26, barrierCapMaterial);
+      if (upperRail) {
+        upperRail.castShadow = true;
+        upperRail.receiveShadow = true;
+        upperRail.renderOrder = 4;
+        upperRails.push(upperRail);
+      }
+      if (lowerRail) {
+        lowerRail.castShadow = true;
+        lowerRail.receiveShadow = true;
+        lowerRail.renderOrder = 4;
+        lowerRails.push(lowerRail);
+      }
+    });
+
+    const postMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1), barrierPostMaterial, placements.length);
+    postMesh.castShadow = true;
+    postMesh.receiveShadow = true;
     const matrix = new THREE.Matrix4();
-    const quat = new THREE.Quaternion();
-    const basis = new THREE.Matrix4();
+    const postMatrix = new THREE.Matrix4();
+    const identity = new THREE.Quaternion();
 
     placements.forEach((placement, index) => {
       const { frame, side, zone } = placement;
-      const offset = frame.road / 2 + frame.shoulder + 0.95;
-      const position = frame.position.clone()
-        .addScaledVector(frame.right, side * offset)
-        .addScaledVector(frame.up, zone.height / 2 + 0.05);
-      basis.makeBasis(frame.tangent, frame.up, frame.right);
-      quat.setFromRotationMatrix(basis);
-      matrix.compose(
-        position,
-        quat,
-        new THREE.Vector3(zone.length, zone.height, zone.depth)
+      const offset = frame.road / 2 + frame.shoulder + 1.42;
+      postMatrix.compose(
+        frame.position.clone()
+          .addScaledVector(frame.right, side * (offset - 0.1))
+          .addScaledVector(WORLD_UP, zone.height * 0.14 + 0.18),
+        identity,
+        new THREE.Vector3(0.16, 1.08, 0.16)
       );
-      barrierMesh.setMatrixAt(index, matrix);
+      postMesh.setMatrixAt(index, postMatrix);
     });
 
-    roadGroup.add(barrierMesh);
+    roadGroup.add(...upperRails, ...lowerRails, postMesh);
   }
 
   function syncStatus() {
@@ -1330,20 +2142,42 @@
     ui.progressValue.textContent = `${(state.progress * 100).toFixed(1)}%`;
   }
 
+  function updateVisualFeedback(frame) {
+    if (!ui.app) {
+      return;
+    }
+    const speedRatio = clamp((state.speedKmh - 60) / 220, 0, 1);
+    const turn = clamp(frame.turn, -1, 1);
+    const cssSpeed = Math.round(speedRatio * 100);
+    const cssTurn = Math.round(turn * 100) / 100;
+    if (cssSpeed !== state.lastCssSpeed) {
+      ui.app.style.setProperty("--speed", String(cssSpeed / 100));
+      state.lastCssSpeed = cssSpeed;
+    }
+    if (cssTurn !== state.lastCssTurn) {
+      ui.app.style.setProperty("--turn", String(cssTurn));
+      state.lastCssTurn = cssTurn;
+    }
+  }
+
   function updateCamera(frame, delta) {
-    const lookAhead = Math.max(50, Math.min(110, 54 + state.speedKmh * 0.18));
+    const speedRatio = clamp((state.speedKmh - 60) / 220, 0, 1);
+    const lookAhead = Math.max(54, Math.min(132, 58 + state.speedKmh * 0.24));
     const cameraHeight = frame.camHeight + 0.8;
+    const bob = Math.sin(state.driveClock * (8.5 + speedRatio * 9)) * (0.018 + speedRatio * 0.032);
+    const lateral = Math.sin(state.driveClock * 3.3) * speedRatio * 0.055;
+    const turnLean = clamp(frame.turn, -1, 1) * (0.18 + speedRatio * 0.2);
     const desiredPosition = cameraTemp.position.set(
-      frame.position.x + frame.up.x * cameraHeight + frame.right.x * 0.25,
-      frame.position.y + frame.up.y * cameraHeight + frame.right.y * 0.25,
-      frame.position.z + frame.up.z * cameraHeight + frame.right.z * 0.25
+      frame.position.x + frame.up.x * (cameraHeight + bob) + frame.right.x * (0.25 + lateral - turnLean),
+      frame.position.y + frame.up.y * (cameraHeight + bob) + frame.right.y * (0.25 + lateral - turnLean),
+      frame.position.z + frame.up.z * (cameraHeight + bob) + frame.right.z * (0.25 + lateral - turnLean)
     );
     const desiredTarget = cameraTemp.target.set(
-      frame.position.x + frame.tangent.x * lookAhead + frame.up.x * frame.camHeight * 0.35,
-      frame.position.y + frame.tangent.y * lookAhead + frame.up.y * frame.camHeight * 0.35,
-      frame.position.z + frame.tangent.z * lookAhead + frame.up.z * frame.camHeight * 0.35
+      frame.position.x + frame.tangent.x * lookAhead + frame.up.x * (frame.camHeight * 0.36 + bob * 0.4) + frame.right.x * (-turnLean * 6),
+      frame.position.y + frame.tangent.y * lookAhead + frame.up.y * (frame.camHeight * 0.36 + bob * 0.4) + frame.right.y * (-turnLean * 6),
+      frame.position.z + frame.tangent.z * lookAhead + frame.up.z * (frame.camHeight * 0.36 + bob * 0.4) + frame.right.z * (-turnLean * 6)
     );
-    const desiredUp = cameraTemp.up.set(0, 1, 0).lerp(frame.up, 0.22).normalize();
+    const desiredUp = cameraTemp.up.set(0, 1, 0).lerp(frame.up, 0.2 + speedRatio * 0.08).normalize();
 
     if (!cameraBlend.initialized) {
       cameraBlend.position.copy(desiredPosition);
@@ -1360,11 +2194,25 @@
     camera.position.copy(cameraBlend.position);
     camera.up.copy(cameraBlend.up);
     camera.lookAt(cameraBlend.target);
+    if (skyRig.sunGlow) {
+      skyRig.sunGlow.position.copy(camera.position).add(new THREE.Vector3(-850, 520, 960));
+      skyRig.sunGlow.lookAt(camera.position);
+    }
+
+    const targetFov = 66 + speedRatio * 10;
+    if (Math.abs(targetFov - state.lastFov) > 0.02) {
+      state.lastFov = lerp(state.lastFov, targetFov, 1 - Math.exp(-Math.max(delta, 0.008) * 5));
+      camera.fov = state.lastFov;
+      camera.updateProjectionMatrix();
+    }
   }
 
   function tick(now) {
     const delta = Math.min((now - state.lastTs) / 1000, 0.05);
     state.lastTs = now;
+    if (state.running) {
+      state.driveClock += delta * (0.72 + state.speedKmh / 240);
+    }
 
     if (state.running) {
       const advance = (state.speedKmh / 3.6) * delta / LAP_LENGTH_M;
@@ -1379,6 +2227,7 @@
 
     const frame = frameAt(state.progress, runtimeFrame);
     updateCamera(frame, delta);
+    updateVisualFeedback(frame);
     syncFrameUI(false, frame);
     renderer.render(scene, camera);
     requestAnimationFrame(tick);
