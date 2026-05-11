@@ -147,7 +147,7 @@
       bank: 1,
       elevation: 100,
       camHeight: 1.72,
-      speedHint: 195
+      speedHint: 210
     },
     {
       p: 0.117,
@@ -158,7 +158,7 @@
       bank: 1,
       elevation: 110,
       camHeight: 1.72,
-      speedHint: 190
+      speedHint: 200
     },
     {
       p: 0.129,
@@ -169,7 +169,7 @@
       bank: 0,
       elevation: 120,
       camHeight: 1.70,
-      speedHint: 170
+      speedHint: 195
     },
     {
       p: 0.163,
@@ -180,7 +180,7 @@
       bank: 2,
       elevation: 160,
       camHeight: 1.72,
-      speedHint: 180
+      speedHint: 200
     },
     {
       p: 0.179,
@@ -191,7 +191,7 @@
       bank: 1,
       elevation: 140,
       camHeight: 1.70,
-      speedHint: 160
+      speedHint: 180
     },
     {
       p: 0.205,
@@ -202,7 +202,7 @@
       bank: 0,
       elevation: 50,
       camHeight: 1.68,
-      speedHint: 120
+      speedHint: 135
     },
     {
       p: 0.237,
