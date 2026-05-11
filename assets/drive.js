@@ -92,7 +92,7 @@
       bank: 0,
       elevation: 60,
       camHeight: 1.8,
-      speedHint: 70
+      speedHint: 90
     },
     {
       p: 0.006,
@@ -103,7 +103,7 @@
       bank: 0,
       elevation: 58,
       camHeight: 1.75,
-      speedHint: 120
+      speedHint: 110
     },
     {
       p: 0.019,
@@ -114,7 +114,7 @@
       bank: -1,
       elevation: 50,
       camHeight: 1.70,
-      speedHint: 110
+      speedHint: 120
     },
     {
       p: 0.033,
@@ -125,7 +125,7 @@
       bank: -1,
       elevation: 45,
       camHeight: 1.68,
-      speedHint: 105
+      speedHint: 110
     },
     {
       p: 0.065,
@@ -147,7 +147,7 @@
       bank: 1,
       elevation: 100,
       camHeight: 1.72,
-      speedHint: 190
+      speedHint: 195
     },
     {
       p: 0.117,
@@ -158,7 +158,7 @@
       bank: 1,
       elevation: 110,
       camHeight: 1.72,
-      speedHint: 180
+      speedHint: 190
     },
     {
       p: 0.129,
@@ -169,7 +169,7 @@
       bank: 0,
       elevation: 120,
       camHeight: 1.70,
-      speedHint: 160
+      speedHint: 170
     },
     {
       p: 0.163,
@@ -180,7 +180,7 @@
       bank: 2,
       elevation: 160,
       camHeight: 1.72,
-      speedHint: 175
+      speedHint: 180
     },
     {
       p: 0.179,
@@ -196,13 +196,13 @@
     {
       p: 0.205,
       label: { en: "Foxhole", cn: "狐洞" },
-      badge: { en: "Brake zone", cn: "制动区" },
+      badge: { en: "Downhill", cn: "下坡" },
       road: 8.7,
       shoulder: 0.5,
       bank: 0,
       elevation: 50,
       camHeight: 1.68,
-      speedHint: 125
+      speedHint: 120
     },
     {
       p: 0.237,
@@ -213,7 +213,7 @@
       bank: -1,
       elevation: 30,
       camHeight: 1.66,
-      speedHint: 110
+      speedHint: 80
     },
     {
       p: 0.277,
@@ -224,7 +224,7 @@
       bank: 0,
       elevation: 100,
       camHeight: 1.68,
-      speedHint: 140
+      speedHint: 130
     },
     {
       p: 0.291,
@@ -235,18 +235,18 @@
       bank: 0,
       elevation: 130,
       camHeight: 1.68,
-      speedHint: 145
+      speedHint: 125
     },
     {
       p: 0.305,
       label: { en: "Kallenhard", cn: "卡伦哈特" },
-      badge: { en: "Flowing", cn: "流畅段" },
+      badge: { en: "Technical", cn: "技术弯" },
       road: 9.2,
       shoulder: 0.8,
       bank: 0,
       elevation: 155,
       camHeight: 1.68,
-      speedHint: 150
+      speedHint: 100
     },
     {
       p: 0.319,
@@ -257,7 +257,7 @@
       bank: 0,
       elevation: 150,
       camHeight: 1.66,
-      speedHint: 120
+      speedHint: 110
     },
     {
       p: 0.329,
@@ -268,7 +268,7 @@
       bank: 0,
       elevation: 130,
       camHeight: 1.66,
-      speedHint: 115
+      speedHint: 105
     },
     {
       p: 0.347,
@@ -279,7 +279,7 @@
       bank: -1,
       elevation: 80,
       camHeight: 1.64,
-      speedHint: 95
+      speedHint: 80
     },
     {
       p: 0.372,
@@ -290,7 +290,7 @@
       bank: 0,
       elevation: 50,
       camHeight: 1.68,
-      speedHint: 110
+      speedHint: 100
     },
     {
       p: 0.385,
@@ -301,7 +301,7 @@
       bank: 0,
       elevation: 90,
       camHeight: 1.66,
-      speedHint: 105
+      speedHint: 85
     },
     {
       p: 0.408,
@@ -312,7 +312,7 @@
       bank: 0,
       elevation: 140,
       camHeight: 1.68,
-      speedHint: 120
+      speedHint: 90
     },
     {
       p: 0.42,
@@ -323,7 +323,7 @@
       bank: 1,
       elevation: 160,
       camHeight: 1.72,
-      speedHint: 170
+      speedHint: 135
     },
     {
       p: 0.466,
@@ -345,7 +345,7 @@
       bank: 1,
       elevation: 240,
       camHeight: 1.70,
-      speedHint: 195
+      speedHint: 190
     },
     {
       p: 0.531,
@@ -356,7 +356,7 @@
       bank: 0,
       elevation: 230,
       camHeight: 1.74,
-      speedHint: 180
+      speedHint: 190
     },
     {
       p: 0.552,
@@ -378,7 +378,7 @@
       bank: -8,
       elevation: 225,
       camHeight: 1.58,
-      speedHint: 90
+      speedHint: 75
     },
     {
       p: 0.624,
@@ -389,7 +389,7 @@
       bank: 1,
       elevation: 297,
       camHeight: 1.72,
-      speedHint: 135
+      speedHint: 100
     },
     {
       p: 0.636,
@@ -411,7 +411,7 @@
       bank: 0,
       elevation: 240,
       camHeight: 1.68,
-      speedHint: 145
+      speedHint: 140
     },
     {
       p: 0.662,
@@ -422,7 +422,7 @@
       bank: 0,
       elevation: 220,
       camHeight: 1.70,
-      speedHint: 140
+      speedHint: 135
     },
     {
       p: 0.681,
@@ -455,7 +455,7 @@
       bank: -1,
       elevation: 170,
       camHeight: 1.68,
-      speedHint: 130
+      speedHint: 125
     },
     {
       p: 0.721,
@@ -466,7 +466,7 @@
       bank: 2,
       elevation: 150,
       camHeight: 1.68,
-      speedHint: 180
+      speedHint: 185
     },
     {
       p: 0.746,
@@ -477,7 +477,7 @@
       bank: 1,
       elevation: 120,
       camHeight: 1.66,
-      speedHint: 170
+      speedHint: 190
     },
     {
       p: 0.763,
@@ -499,7 +499,7 @@
       bank: -2,
       elevation: 70,
       camHeight: 1.64,
-      speedHint: 130
+      speedHint: 90
     },
     {
       p: 0.815,
@@ -521,7 +521,7 @@
       bank: 0,
       elevation: 40,
       camHeight: 1.68,
-      speedHint: 160
+      speedHint: 165
     },
     {
       p: 0.853,
@@ -532,7 +532,7 @@
       bank: 0,
       elevation: 0,
       camHeight: 1.72,
-      speedHint: 240
+      speedHint: 260
     },
     {
       p: 0.947,
@@ -543,7 +543,7 @@
       bank: 0,
       elevation: 50,
       camHeight: 1.72,
-      speedHint: 200
+      speedHint: 210
     },
     {
       p: 0.966,
@@ -576,7 +576,7 @@
       bank: 0,
       elevation: 60,
       camHeight: 1.8,
-      speedHint: 70
+      speedHint: 90
     }
   ];
 
@@ -2233,8 +2233,8 @@
 
     if (state.running) {
       const currentSpeed = state.effectiveSpeed || state.speedKmh;
-      const lookAheadDist = 0.01 + currentSpeed / 20000;
-      const lookAheadSamples = 12;
+      const lookAheadDist = 0.015 + currentSpeed / 12000;
+      const lookAheadSamples = 14;
       let minAhead = Infinity;
       let minDist = lookAheadDist;
       for (let i = 1; i <= lookAheadSamples; i += 1) {
@@ -2247,16 +2247,16 @@
           minDist = d;
         }
       }
-      const brakingThreshold = 0.003 + currentSpeed * 0.000015;
+      const brakingThreshold = 0.004 + currentSpeed * 0.00002;
+      const currentIdx = Math.floor(wrap01(state.progress) * SAMPLE_COUNT) % SAMPLE_COUNT;
+      const currentHint = state.frames[currentIdx].speedHint;
       let targetSpeed;
       if (minAhead < currentSpeed - 10 && minDist < brakingThreshold) {
-        targetSpeed = Math.max(minAhead, currentSpeed - 400 * delta);
-      } else if (minAhead < currentSpeed - 10) {
-        targetSpeed = currentSpeed;
+        targetSpeed = minAhead;
       } else {
-        targetSpeed = state.speedKmh;
+        targetSpeed = Math.min(state.speedKmh, currentHint > 0 ? currentHint : state.speedKmh);
       }
-      const rate = targetSpeed < currentSpeed ? 1 - Math.exp(-delta * 8) : 1 - Math.exp(-delta * 2.5);
+      const rate = targetSpeed < currentSpeed ? 1 - Math.exp(-delta * 2.0) : 1 - Math.exp(-delta * 0.08);
       state.effectiveSpeed = state.effectiveSpeed != null
         ? lerp(currentSpeed, targetSpeed, rate)
         : targetSpeed;
