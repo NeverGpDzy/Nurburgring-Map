@@ -11,6 +11,7 @@
   const TRACK_BASE_Y = 18;
   const SAMPLE_COUNT = 2400;
   const EDGE_LINE_WIDTH = 0.16;
+  const KERB_UV_DIVISOR = 5;
   const LABEL_LEAD_TIME = 2.5;
   const FOREST_SPACING_M = 34;
   const DISTANCE_BOARD_OFFSET = 6.4;
@@ -1142,22 +1143,27 @@
   }
 
   function makeKerbTexture() {
-    const width = 256;
+    const width = 512;
     const height = 64;
+    const slant = Math.round(height * Math.tan(18 * Math.PI / 180));
+    const cycleWidth = Math.round(width / 5);
+    const stripeWidth = Math.round(cycleWidth / 2);
+
     const textureCanvas = document.createElement("canvas");
     textureCanvas.width = width;
     textureCanvas.height = height;
     const ctx = textureCanvas.getContext("2d");
+
     ctx.fillStyle = "#f5ead7";
     ctx.fillRect(0, 0, width, height);
 
-    for (let x = -height; x < width + height; x += 56) {
-      ctx.fillStyle = "#c82f28";
+    ctx.fillStyle = "#c82f28";
+    for (let x = -height; x < width + height; x += cycleWidth) {
       ctx.beginPath();
       ctx.moveTo(x, 0);
-      ctx.lineTo(x + 32, 0);
-      ctx.lineTo(x + 32 + height, height);
-      ctx.lineTo(x + height, height);
+      ctx.lineTo(x + stripeWidth, 0);
+      ctx.lineTo(x + stripeWidth + slant, height);
+      ctx.lineTo(x + slant, height);
       ctx.closePath();
       ctx.fill();
     }
@@ -1165,18 +1171,12 @@
     ctx.globalAlpha = 0.25;
     ctx.fillStyle = "#24150f";
     ctx.fillRect(0, height - 5, width, 2);
-    ctx.globalAlpha = 0.16;
-    for (let i = 0; i < 220; i += 1) {
-      const x = seededNoise(i * 2.4) * width;
-      const y = seededNoise(i * 4.2) * height;
-      ctx.fillRect(x, y, 1 + seededNoise(i) * 2, 1);
-    }
     ctx.globalAlpha = 1;
 
     const texture = new THREE.CanvasTexture(textureCanvas);
     texture.wrapS = THREE.RepeatWrapping;
     texture.wrapT = THREE.ClampToEdgeWrapping;
-    texture.repeat.set(1.25, 1);
+    texture.repeat.set(1, 1);
     texture.colorSpace = THREE.SRGBColorSpace;
     texture.needsUpdate = true;
     return texture;
@@ -1390,6 +1390,20 @@
       current.speedHint = current.profile.speedHint;
     }
 
+    const smoothed = samples.map((s) => ({
+      tangent: s.tangent.clone(),
+      right: s.right.clone()
+    }));
+    for (let index = 0; index < samples.length; index += 1) {
+      const prev = smoothed[(index - 1 + samples.length) % samples.length];
+      const next = smoothed[(index + 1) % samples.length];
+      const current = samples[index];
+      current.tangent = mixVec3(prev.tangent, next.tangent, 0.5).normalize();
+      current.right = mixVec3(prev.right, next.right, 0.5).normalize();
+      current.up.crossVectors(current.tangent, current.right).normalize();
+      current.right.crossVectors(current.up, current.tangent).normalize();
+    }
+
     state.frames = samples;
   }
 
@@ -1559,7 +1573,7 @@
     return new THREE.Mesh(geometry, material);
   }
 
-  function buildFrameRibbon(frames, widthAccessor, offsetAccessor, lift, material, closed = false) {
+  function buildFrameRibbon(frames, widthAccessor, offsetAccessor, lift, material, closed = false, uvDivisor = null) {
     if (!frames.length) {
       return null;
     }
@@ -1592,10 +1606,12 @@
       positions[vert + 5] = right.z;
 
       const uv = index * 4;
-      const u = ((frame.distance || startDistance) - startDistance) / span;
-      uvs[uv] = u * 6;
+      const u = uvDivisor != null
+        ? (frame.distance || 0) / uvDivisor
+        : ((frame.distance || startDistance) - startDistance) / span * 6;
+      uvs[uv] = u;
       uvs[uv + 1] = 0;
-      uvs[uv + 2] = u * 6;
+      uvs[uv + 2] = u;
       uvs[uv + 3] = 1;
 
       if (index < frames.length - 1 || closed) {
@@ -1699,7 +1715,8 @@
         },
         0.11,
         kerbStripeMaterial,
-        false
+        false,
+        KERB_UV_DIVISOR
       );
       if (strip) {
         strip.renderOrder = 3;
@@ -2113,7 +2130,7 @@
 
   function syncFrameUI(force = false, frame = null) {
     const activeFrame = frame || frameAt(state.progress, runtimeFrame);
-    const lookAhead = (state.speedKmh / 3.6) * LABEL_LEAD_TIME / LAP_LENGTH_M;
+    const lookAhead = ((state.effectiveSpeed || state.speedKmh) / 3.6) * LABEL_LEAD_TIME / LAP_LENGTH_M;
     const aheadFrame = frameAt(state.progress + lookAhead, labelFrame);
     const copy = COPY[state.lang];
 
@@ -2124,7 +2141,7 @@
       state.lastSegmentLabel = aheadFrame.label[state.lang];
     }
 
-    const speed = Math.round(state.speedKmh);
+    const speed = Math.round(state.effectiveSpeed || state.speedKmh);
     ui.speedNumber.textContent = String(speed);
     ui.speedValue.textContent = String(speed);
     ui.progressText.textContent = `${(state.progress * 100).toFixed(1)}%`;
@@ -2146,7 +2163,7 @@
     if (!ui.app) {
       return;
     }
-    const speedRatio = clamp((state.speedKmh - 60) / 220, 0, 1);
+    const speedRatio = clamp(((state.effectiveSpeed || state.speedKmh) - 60) / 220, 0, 1);
     const turn = clamp(frame.turn, -1, 1);
     const cssSpeed = Math.round(speedRatio * 100);
     const cssTurn = Math.round(turn * 100) / 100;
@@ -2161,11 +2178,12 @@
   }
 
   function updateCamera(frame, delta) {
-    const speedRatio = clamp((state.speedKmh - 60) / 220, 0, 1);
-    const lookAhead = Math.max(54, Math.min(132, 58 + state.speedKmh * 0.24));
+    const displaySpeed = state.effectiveSpeed || state.speedKmh;
+    const speedRatio = clamp((displaySpeed - 60) / 220, 0, 1);
+    const lookAhead = Math.max(54, Math.min(132, 58 + displaySpeed * 0.24));
     const cameraHeight = frame.camHeight + 0.8;
-    const bob = Math.sin(state.driveClock * (8.5 + speedRatio * 9)) * (0.018 + speedRatio * 0.032);
-    const lateral = Math.sin(state.driveClock * 3.3) * speedRatio * 0.055;
+    const bob = Math.sin(state.driveClock * (5 + speedRatio * 5)) * (0.008 + speedRatio * 0.015);
+    const lateral = Math.sin(state.driveClock * 2.2) * speedRatio * 0.03;
     const turnLean = clamp(frame.turn, -1, 1) * (0.18 + speedRatio * 0.2);
     const desiredPosition = cameraTemp.position.set(
       frame.position.x + frame.up.x * (cameraHeight + bob) + frame.right.x * (0.25 + lateral - turnLean),
@@ -2185,7 +2203,7 @@
       cameraBlend.up.copy(desiredUp);
       cameraBlend.initialized = true;
     } else {
-      const smoothing = 1 - Math.exp(-Math.max(delta, 0.008) * (22 + Math.max(0, state.speedKmh - 60) * 0.045));
+      const smoothing = 1 - Math.exp(-Math.max(delta, 0.008) * (22 + Math.max(0, displaySpeed - 60) * 0.045));
       cameraBlend.position.lerp(desiredPosition, smoothing);
       cameraBlend.target.lerp(desiredTarget, smoothing);
       cameraBlend.up.lerp(desiredUp, smoothing).normalize();
@@ -2210,12 +2228,41 @@
   function tick(now) {
     const delta = Math.min((now - state.lastTs) / 1000, 0.05);
     state.lastTs = now;
-    if (state.running) {
-      state.driveClock += delta * (0.72 + state.speedKmh / 240);
-    }
+
+    const frame = frameAt(state.progress, runtimeFrame);
 
     if (state.running) {
-      const advance = (state.speedKmh / 3.6) * delta / LAP_LENGTH_M;
+      const currentSpeed = state.effectiveSpeed || state.speedKmh;
+      const lookAheadDist = 0.01 + currentSpeed / 20000;
+      const lookAheadSamples = 12;
+      let minAhead = Infinity;
+      let minDist = lookAheadDist;
+      for (let i = 1; i <= lookAheadSamples; i += 1) {
+        const d = lookAheadDist * (i / lookAheadSamples);
+        const p = wrap01(state.progress + d);
+        const idx = Math.floor(p * SAMPLE_COUNT) % SAMPLE_COUNT;
+        const hint = state.frames[idx].speedHint;
+        if (hint > 0 && hint < minAhead) {
+          minAhead = hint;
+          minDist = d;
+        }
+      }
+      const brakingThreshold = 0.003 + currentSpeed * 0.000015;
+      let targetSpeed;
+      if (minAhead < currentSpeed - 10 && minDist < brakingThreshold) {
+        targetSpeed = Math.max(minAhead, currentSpeed - 400 * delta);
+      } else if (minAhead < currentSpeed - 10) {
+        targetSpeed = currentSpeed;
+      } else {
+        targetSpeed = state.speedKmh;
+      }
+      const rate = targetSpeed < currentSpeed ? 1 - Math.exp(-delta * 8) : 1 - Math.exp(-delta * 2.5);
+      state.effectiveSpeed = state.effectiveSpeed != null
+        ? lerp(currentSpeed, targetSpeed, rate)
+        : targetSpeed;
+      const displaySpeed = state.effectiveSpeed;
+      state.driveClock += delta * (0.72 + displaySpeed / 240);
+      const advance = (displaySpeed / 3.6) * delta / LAP_LENGTH_M;
       let nextProgress = state.progress + advance;
       while (nextProgress >= 1) {
         nextProgress -= 1;
@@ -2225,7 +2272,6 @@
       state.progress = nextProgress;
     }
 
-    const frame = frameAt(state.progress, runtimeFrame);
     updateCamera(frame, delta);
     updateVisualFeedback(frame);
     syncFrameUI(false, frame);
