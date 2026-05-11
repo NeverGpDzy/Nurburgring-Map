@@ -174,13 +174,13 @@
     {
       p: 0.163,
       label: { en: "Schwedenkreuz", cn: "瑞典十字" },
-      badge: { en: "Fast sweep", cn: "高速弯" },
+      badge: { en: "Heavy braking", cn: "重刹区" },
       road: 9.8,
       shoulder: 0.7,
       bank: 2,
       elevation: 160,
       camHeight: 1.72,
-      speedHint: 200
+      speedHint: 100
     },
     {
       p: 0.179,
@@ -191,7 +191,7 @@
       bank: 1,
       elevation: 140,
       camHeight: 1.70,
-      speedHint: 180
+      speedHint: 140
     },
     {
       p: 0.205,
