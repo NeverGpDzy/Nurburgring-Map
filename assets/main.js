@@ -1,29 +1,6 @@
-let rootURL = document.baseURI
 var root = document.querySelector(':root')
 const body = document.querySelector('body');
-function resolveInitialLang(){
-  if (window.lang === 'cn' || window.lang === 'en') {
-    return window.lang
-  }
-  var params = new URLSearchParams(window.location.search)
-  var forced = params.get('lang')
-  if (forced === 'cn' || forced === 'en') {
-    return forced
-  }
-  var nav = []
-  if (window.navigator && window.navigator.languages && window.navigator.languages.length) {
-    nav = nav.concat(window.navigator.languages)
-  }
-  if (window.navigator && window.navigator.language) {
-    nav.push(window.navigator.language)
-  }
-  return nav.some(function(item) {
-    return /^zh-/i.test(item)
-  }) ? 'cn' : 'en'
-}
-window.lang = resolveInitialLang()
-document.documentElement.lang = window.lang === 'cn' ? 'zh-Hans' : 'en'
-var lang = window.lang
+var lang = window.lang || 'en'
 if(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches){
   root.classList.add('dark')
 }
@@ -265,7 +242,6 @@ var d = new Vue({
         "ch": "Kottenborn",
         "en": "Kottenborn",
         "de": "Kottenborn",
-        "en": "Kottenborn",
         "more": "以附近的小镇命名，但最近也没人这么叫了，都直呼「飞机场和瑞典十字之间那个左弯」",
         "imgs": [
           {
@@ -1024,7 +1000,9 @@ var d = new Vue({
     ],
     aboutContent: "网页设计 & 开发：<a href='https://jjying.com/' target='_blank'>JJ Ying</a><br/><br/><strong>参考信息:</strong><br/>· <a target='_blank' href='https://oversteer48.com/nurburgring-corner-names/'>Corner Names, Numbers and circuit map</a><br/>· <a target='_blank' href='https://nring.info/nurburgring-nordschleife-corners/'>NRing.info</a><br/>· <a target='_blank' href='https://www.youtube.com/watch?v=-lCR1_cDqTg'>Nürburgring Corner Names Explained</a><br/>· 键盘车神教教主视频：<a target='_blank' href='https://www.bilibili.com/video/BV1NntCe4ETM/'>纽北每一个弯的名字？</a><br/><br/><strong>页面源码:</strong><br/>· <a target='_blank' href='https://github.com/JJYing/Nurburgring-Map'>@GitHub</a>",
     modalContent: "",
-    modalType: "text"
+    modalType: "text",
+    trackPath: null,
+    trackLength: 0
   },
   methods: {
     innerModal: function(e){
@@ -1063,6 +1041,32 @@ var d = new Vue({
         if(img.url) this.modalContent += "<div class='source-in-modal'>@<a href='" + img.url + "' target='_blank'>" + img.author + "</a></div>"
       }
       this.showModal = true
+    },
+    getCornerKm: function(corner){
+      return (corner.st * 20.832).toFixed(1)
+    },
+    findCornerByProgress: function(progress, direction){
+      var arr = this.corners
+      var lo = 0, hi = arr.length - 1, idx = -1
+      while (lo <= hi) {
+        var mid = (lo + hi) >> 1
+        if (arr[mid].st <= progress) {
+          idx = mid
+          lo = mid + 1
+        } else {
+          hi = mid - 1
+        }
+      }
+      if (direction === 'prev') {
+        if (idx > 0) return arr[idx - 1]
+        return null
+      }
+      if (direction === 'next') {
+        if (idx >= 0 && idx < arr.length - 1) return arr[idx + 1]
+        return arr[0]
+      }
+      if (idx >= 0 && progress >= arr[idx].st && progress <= arr[idx].ed) return arr[idx]
+      return null
     }
 
   }
@@ -1079,10 +1083,10 @@ document.addEventListener('scroll', function(e){
 });
 
 
+var _scrollTicking = false
 function updateScrollDistance(){
   d.showCorner = false
   d.showSection = false
-  d.showCornerDesc = false
   d.currentCorner = null
   let progress = window.scrollY / ( body.scrollHeight - window.innerHeight)
   if(progress > 1){
@@ -1090,15 +1094,17 @@ function updateScrollDistance(){
   }
   body.style.setProperty('--p', progress)
   d.p = progress
-  d.corners.forEach((corner, i)=>{
-    if(progress > corner.st && progress < corner.ed){
-      d.showCorner = true
-      d.cornerStart = corner.st
-      d.cornerEnd = corner.ed
-      d.currentCorner = corner      
-    }
-  })
-  d.sections.forEach((section, i)=>{
+
+  // Binary search for current corner
+  var corner = d.findCornerByProgress(progress)
+  if(corner){
+    d.showCorner = true
+    d.cornerStart = corner.st
+    d.cornerEnd = corner.ed
+    d.currentCorner = corner
+  }
+
+  d.sections.forEach((section)=>{
     if(progress > section.st && progress < section.ed){
       d.showSection = true
       d.sectionStart = section.st
@@ -1107,22 +1113,66 @@ function updateScrollDistance(){
   })
 }
 
-function updatePageHeight(){
-  if(window.innerHeight < window.innerWidth){
-    body.classList.remove("vertical")
-    body.classList.add("horizontal")
-  }
-  else{
-    body.classList.remove("horizontal")
-    body.classList.add("vertical")
+function throttledScrollUpdate(){
+  if(!_scrollTicking){
+    requestAnimationFrame(function(){
+      updateScrollDistance()
+      _scrollTicking = false
+    })
+    _scrollTicking = true
   }
 }
 
-window.addEventListener('scroll', updateScrollDistance)
+var _hashTimer = null
+function scheduleHashUpdate(progress){
+  if(_hashTimer) clearTimeout(_hashTimer)
+  _hashTimer = setTimeout(function(){
+    try{
+      history.replaceState(null, '', '#' + progress.toFixed(4))
+    }catch(e){}
+  }, 300)
+}
+
+function restoreFromHash(){
+  var hash = window.location.hash
+  if(hash && hash.length > 1){
+    var val = parseFloat(hash.substring(1))
+    if(!isNaN(val) && val >= 0 && val <= 1){
+      setTimeout(function(){
+        d.setP(val)
+      }, 100)
+    }
+  }
+}
+
+function updatePageHeight(){
+  var isPortrait = window.matchMedia ? window.matchMedia('(orientation: portrait)').matches : (window.innerHeight >= window.innerWidth)
+  if(isPortrait){
+    body.classList.remove("horizontal")
+    body.classList.add("vertical")
+  }
+  else{
+    body.classList.remove("vertical")
+    body.classList.add("horizontal")
+  }
+}
+
+window.addEventListener('scroll', function(){
+  throttledScrollUpdate()
+  scheduleHashUpdate(d.p)
+})
+
 window.addEventListener('resize', function(){
   updateScrollDistance()
   updatePageHeight()
 })
+
+if(window.matchMedia){
+  var portraitMq = window.matchMedia('(orientation: portrait)')
+  if(portraitMq.addEventListener){
+    portraitMq.addEventListener('change', updatePageHeight)
+  }
+}
 
 updateScrollDistance()
 updatePageHeight()
@@ -1131,6 +1181,15 @@ window.addEventListener("keyup",function(e){
   if(e.key === "Escape") {
     d.showModal = false
   }
+  if(d.showModal) return
+  if(e.key === "ArrowRight"){
+    var next = d.findCornerByProgress(d.p, 'next')
+    if(next) d.setP((next.st + next.ed) / 2)
+  }
+  if(e.key === "ArrowLeft"){
+    var prev = d.findCornerByProgress(d.p, 'prev')
+    if(prev) d.setP((prev.st + prev.ed) / 2)
+  }
 })
 
 document.querySelector('.track-map > .inner').addEventListener('mousemove', function(event) {
@@ -1138,3 +1197,13 @@ document.querySelector('.track-map > .inner').addEventListener('mousemove', func
   d.mX = (event.clientX - innerRect.left) / innerRect.width
   d.mY = (event.clientY - innerRect.top) / innerRect.height
 });
+
+// Mount hook: init track path reference and restore URL hash
+d.$nextTick(function(){
+  var pathEl = document.getElementById('track')
+  if(pathEl){
+    d.trackPath = pathEl
+    d.trackLength = pathEl.getTotalLength()
+  }
+  restoreFromHash()
+})

@@ -378,6 +378,17 @@ body{
   stroke: var(--text3);
   stroke-width: 1px;
 }
+.corner-markers{
+  animation: slowShow .3s var(--curve) 1.1s both;
+}
+.corner-dot{
+  fill: var(--bg3);
+  transition: r .15s ease-out, fill .15s ease-out;
+}
+.corner-dot.active{
+  fill: var(--main);
+  r: 4;
+}
 
 /* ~Mid */
 .mid{
@@ -552,6 +563,12 @@ body{
   100%{translate: none;opacity: 1;scale: 1}
 }
 
+.corner-km{
+  font-size: calc(.5rem + .3vmin + .2vmax);
+  color: var(--text3);
+  margin-bottom: .3em;
+  font-weight: 400;
+}
 .desc .primary{
   line-height: 1;
   font-size: calc(1rem + 1vmin + 1vmax);

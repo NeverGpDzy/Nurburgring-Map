@@ -33,9 +33,8 @@
       (function() {
         var params = new URLSearchParams(window.location.search);
         var forced = params.get('lang');
-        var current = 'en';
         if (forced === 'cn' || forced === 'en') {
-          current = forced;
+          window.lang = forced;
         } else {
           var nav = [];
           if (window.navigator && window.navigator.languages && window.navigator.languages.length) {
@@ -44,12 +43,9 @@
           if (window.navigator && window.navigator.language) {
             nav.push(window.navigator.language);
           }
-          if (nav.some(function(item) { return /^zh-/i.test(item); })) {
-            current = 'cn';
-          }
+          window.lang = nav.some(function(item) { return /^zh-/i.test(item); }) ? 'cn' : 'en';
         }
-        window.lang = current;
-        document.documentElement.lang = current === 'cn' ? 'zh-Hans' : 'en';
+        document.documentElement.lang = window.lang === 'cn' ? 'zh-Hans' : 'en';
       })();
       var lang = window.lang || 'en'
       var _paq = window._paq = window._paq || [];
@@ -93,6 +89,14 @@
         </g>
 
         <use href="#track" class="progress"/>
+
+        <g class="corner-markers" v-if="trackPath">
+          <circle v-for="(c, i) in corners" :key="'marker-'+i"
+            :cx="trackPath.getPointAtLength(c.st * trackLength).x"
+            :cy="trackPath.getPointAtLength(c.st * trackLength).y"
+            r="2.5" class="corner-dot"
+            :class="c.st < p && p < c.ed ? 'active' : ''"/>
+        </g>
       </svg>
       <div v-for="c in bridges" class="corner-name bridge-name" :class="[ (c.pt < p) || showAllCornerNames ? 'show' : 'hidden', c.h, c.v, c.pt - 0.001 < p && p < c.pt + 0.001 ? 'highlighted' : '']" :style=" '--x:' + c.x + ';--y:' + c.y " @click="setP(c.pt)">
         <div>
@@ -154,6 +158,7 @@
     </div>
     <div class="corner-info">
       <div class="inner" v-if="currentCorner && p > 0" v-cloak>
+        <div class="corner-km skew-n">KM {{getCornerKm(currentCorner)}}</div>
         <div class="primary skew-n title-font" v-if="lang == 'cn' && currentCorner.ch" :class="currentCorner.ch == currentCorner.nk ? 'qt' : '' " v-cloak>{{currentCorner.ch}}</div>
         <div class="primary skew-n" v-if="lang == 'en' && currentCorner.en" v-cloak>{{currentCorner.en}}</div>
         <div class="nickname qt skew-n title-font" v-if="lang == 'cn' && currentCorner.nk && currentCorner.ch != currentCorner.nk" v-cloak>{{currentCorner.nk}}</div>
@@ -238,7 +243,7 @@
   </div>
 
   <div class="modal text" :class="[showModal && modalType == 'text' ? 'show' : '']" @click="showModal = false">
-    <div class="inner" @click="innerModal(event)">
+    <div class="inner" @click="innerModal($event)">
       <div class="modal-content skew-n" v-html="modalContent" @click="showModal = false"></div>
       <div class="modal-close skew-n" @click="showModal = false">
         <svg viewBox="0 0 30 30">
@@ -250,7 +255,7 @@
   </div>
 
   <div class="modal image" :class="[showModal && modalType == 'image' ? 'show' : '']" @click="showModal = false">
-    <div class="inner" @click="innerModal(event)">
+    <div class="inner" @click="innerModal($event)">
       <div class="modal-content skew-n" v-html="modalContent"></div>
       <div class="modal-close skew-n" @click="showModal = false">
         <svg viewBox="0 0 30 30">
