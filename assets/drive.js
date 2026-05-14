@@ -1,19 +1,32 @@
 (() => {
+  const DATA = window.NRB_DATA || {};
   const THREE_OK = typeof THREE !== "undefined";
   const pathEl = document.getElementById("drive-track");
   const canvas = document.getElementById("driveCanvas");
 
-  if (!THREE_OK || !pathEl || !canvas) {
+  if (pathEl && DATA.TRACK_PATH) {
+    pathEl.setAttribute("d", DATA.TRACK_PATH);
+  }
+
+  if (!THREE_OK || !pathEl || !canvas || !pathEl.getAttribute("d") || !canUseWebGL()) {
+    showFallback();
     return;
   }
 
-  const LAP_LENGTH_M = 20832;
+  const REDUCED_MOTION = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  const LOW_POWER = REDUCED_MOTION
+    || Math.min(window.innerWidth || 0, window.innerHeight || 0) <= 700
+    || ((navigator.hardwareConcurrency || 8) <= 4);
+  const PIXEL_RATIO_LIMIT = LOW_POWER ? 1 : 1.5;
+  const SHADOW_MAP_SIZE = LOW_POWER ? 1024 : 2048;
+
+  const LAP_LENGTH_M = DATA.LAP_LENGTH_M || 20832;
   const TRACK_BASE_Y = 18;
-  const SAMPLE_COUNT = 2400;
+  const SAMPLE_COUNT = LOW_POWER ? 1600 : 2400;
   const EDGE_LINE_WIDTH = 0.16;
   const KERB_UV_DIVISOR = 5;
   const LABEL_LEAD_TIME = 2.5;
-  const FOREST_SPACING_M = 34;
+  const FOREST_SPACING_M = LOW_POWER ? 52 : 34;
   const DISTANCE_BOARD_OFFSET = 6.4;
   const WORLD_UP = new THREE.Vector3(0, 1, 0);
 
@@ -622,7 +635,7 @@
 
   const rootLang = resolveLang();
   document.documentElement.lang = rootLang === "cn" ? "zh-Hans" : "en";
-  const defaultSpeedKmh = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 120 : 180;
+  const defaultSpeedKmh = REDUCED_MOTION ? 120 : 180;
   const DRIVE_DIRECTION = 1;
 
   const ui = {
@@ -654,6 +667,10 @@
     progressValue: document.getElementById("progressValue"),
     mapDot: document.getElementById("mapDot")
   };
+
+  if (LOW_POWER && ui.app) {
+    ui.app.classList.add("low-power");
+  }
 
   const state = {
     lang: rootLang,
@@ -696,21 +713,29 @@
 
   state.meterPerSvgUnit = LAP_LENGTH_M / state.totalSvgLength;
 
-  const renderer = new THREE.WebGLRenderer({
-    canvas,
-    antialias: true,
-    alpha: false,
-    powerPreference: "high-performance"
-  });
+  let renderer;
+  try {
+    renderer = new THREE.WebGLRenderer({
+      canvas,
+      antialias: !LOW_POWER,
+      alpha: false,
+      powerPreference: LOW_POWER ? "default" : "high-performance"
+    });
+  } catch (error) {
+    showFallback();
+    return;
+  }
 
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, PIXEL_RATIO_LIMIT));
   renderer.setSize(window.innerWidth, window.innerHeight, false);
   renderer.setClearColor(0x091116, 1);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.16;
-  renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.shadowMap.enabled = !LOW_POWER;
+  if (!LOW_POWER) {
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  }
 
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x0b1419);
@@ -721,8 +746,8 @@
   const hemi = new THREE.HemisphereLight(0xdceeff, 0x172318, 1.25);
   const sun = new THREE.DirectionalLight(0xffe0a6, 2.25);
   sun.position.set(-1600, 1650, 980);
-  sun.castShadow = true;
-  sun.shadow.mapSize.set(2048, 2048);
+  sun.castShadow = !LOW_POWER;
+  sun.shadow.mapSize.set(SHADOW_MAP_SIZE, SHADOW_MAP_SIZE);
   sun.shadow.camera.near = 1;
   sun.shadow.camera.far = 5200;
   sun.shadow.camera.left = -1700;
@@ -738,7 +763,7 @@
   roadTexture.wrapS = THREE.RepeatWrapping;
   roadTexture.wrapT = THREE.RepeatWrapping;
   roadTexture.repeat.set(1100, 1.25);
-  roadTexture.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), 8);
+  roadTexture.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), LOW_POWER ? 4 : 8);
   roadTexture.colorSpace = THREE.SRGBColorSpace;
 
   const shoulderTexture = makeGroundTexture("#6a7750", "#a7a26d", 0.42);
@@ -921,7 +946,9 @@
   buildKerbStrips();
   buildBarriers();
   buildForest();
-  buildGrassClumps();
+  if (!LOW_POWER) {
+    buildGrassClumps();
+  }
   buildTracksideSigns();
   buildDistanceBoards();
 
@@ -1003,6 +1030,9 @@
   requestAnimationFrame(tick);
 
   function resolveLang() {
+    if (DATA.resolveLang) {
+      return DATA.resolveLang();
+    }
     if (window.lang === "cn" || window.lang === "en") {
       return window.lang;
     }
@@ -2283,6 +2313,37 @@
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight, false);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, PIXEL_RATIO_LIMIT));
+  }
+
+  function canUseWebGL() {
+    try {
+      const testCanvas = document.createElement("canvas");
+      return !!(testCanvas.getContext("webgl2") || testCanvas.getContext("webgl"));
+    } catch (error) {
+      return false;
+    }
+  }
+
+  function showFallback() {
+    const lang = DATA.resolveLang ? DATA.resolveLang() : (window.lang || "en");
+    const copy = lang === "cn"
+      ? {
+        title: "无法启动第一人称巡航",
+        body: "当前浏览器或设备没有可用的 WebGL 环境。你仍然可以回到交互地图查看全部弯道。",
+        link: "返回地图"
+      }
+      : {
+        title: "Drive mode cannot start",
+        body: "This browser or device does not have an available WebGL context. The interactive map is still available.",
+        link: "Back to map"
+      };
+    const app = document.querySelector(".drive-app") || document.body;
+    if (canvas) canvas.setAttribute("hidden", "");
+    app.classList.add("fallback-active");
+    const fallback = document.createElement("div");
+    fallback.className = "drive-fallback";
+    fallback.innerHTML = `<div class="drive-fallback-panel"><h1>${copy.title}</h1><p>${copy.body}</p><a href="index.html?lang=${encodeURIComponent(lang)}">${copy.link}</a></div>`;
+    app.appendChild(fallback);
   }
 })();
